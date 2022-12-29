@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+  <file original="$Twitch___Main" source-language="en" target-language="xx-XX" datatype="csharp">
+    <body>
+      <group id="@commands">
+        <trans-unit id="$Twitch___CreateClip" translate="yes">
+          <source>Create Clip</source>
+          <target>{pilC etaerC}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ToggleSlowChat" translate="yes">
+          <source>Chat Slow Mode</source>
+          <target>{edoM wolS tahC}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ToggleEmotesOnly" translate="yes">
+          <source>Chat Emotes-Only</source>
+          <target>{ylnO-setomE tahC}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ToggleFollowersOnly" translate="yes">
+          <source>Chat Followers-Only</source>
+          <target>{ylnO-srewolloF tahC}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ToggleSubsOnly" translate="yes">
+          <source>Chat Subscribers-Only</source>
+          <target>{ylnO-srebircsbuS tahC}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ClearChat" translate="yes">
+          <source>Clear Chat</source>
+          <target>{tahC raelC}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___CreateMarker" translate="yes">
+          <source>Create Marker</source>
+          <target>{rekraM etaerC}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___RunCommercial" translate="yes">
+          <source>Run Commercial</source>
+          <target>{laicremmoC nuR}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ViewerCount" translate="yes">
+          <source>Viewer Count</source>
+          <target>{tnuoC reweiV}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ResetSettings" translate="yes">
+          <source>Reset Settings</source>
+          <target>{sgnitteS teseR}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___SendChatMessage" translate="yes">
+          <source>Send Chat Message</source>
+          <target>{egasseM tahC dneS}></target>
+        </trans-unit>
+      </group>
+      <group id="@adjustments" />
+      <group id="@groups">
+        <trans-unit id="$Twitch___@groups___Stream" translate="yes">
+          <source>Stream</source>
+          <target>{maertS}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___@groups___Chat" translate="yes">
+          <source>Chat</source>
+          <target>{tahC}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___@groups___SendChatMessage" translate="yes">
+          <source>SendChatMessage</source>
+          <target>{egasseMtahCdneS}></target>
+        </trans-unit>
+      </group>
+      <group id="@resources">
+        <trans-unit id="$Twitch___@resources___Timeout" translate="yes">
+          <source>Timeout</source>
+          <target>{tuoemiT}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___@resources___Ban" translate="yes">
+          <source>Ban</source>
+          <target>{naB}></target>
+        </trans-unit>
+        <trans-unit id="$Twitch___@resources___Lift Ban/Timeout" translate="yes">
+          <source>Lift Ban/Timeout</source>
+          <target>{tuoemiT/naB tfiL}></target>
+        </trans-unit>
+      </group>
+      <group id="@width60" />
+      <group id="@width90" />
+    </body>
+  </file>
+</xliff>
