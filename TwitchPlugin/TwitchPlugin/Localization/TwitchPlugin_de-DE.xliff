@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+  <file original="$Twitch___Main" source-language="en" target-language="" datatype="csharp">
+    <body>
+      <group id="@commands">
+        <trans-unit id="$Twitch___CreateClip" translate="yes">
+          <source>Create Clip</source>
+          <target>Create Clip</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ToggleSlowChat" translate="yes">
+          <source>Chat Slow Mode</source>
+          <target>Chat Slow Mode</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ToggleEmotesOnly" translate="yes">
+          <source>Chat Emotes-Only</source>
+          <target>Chat Emotes-Only</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ToggleFollowersOnly" translate="yes">
+          <source>Chat Followers-Only</source>
+          <target>Chat Followers-Only</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ToggleSubsOnly" translate="yes">
+          <source>Chat Subscribers-Only</source>
+          <target>Chat Subscribers-Only</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ClearChat" translate="yes">
+          <source>Clear Chat</source>
+          <target>Clear Chat</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___CreateMarker" translate="yes">
+          <source>Create Marker</source>
+          <target>Create Marker</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___RunCommercial" translate="yes">
+          <source>Run Commercial</source>
+          <target>Run Commercial</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ViewerCount" translate="yes">
+          <source>Viewer Count</source>
+          <target>Viewer Count</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___ResetSettings" translate="yes">
+          <source>Reset Settings</source>
+          <target>Reset Settings</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___SendChatMessage" translate="yes">
+          <source>Send Chat Message</source>
+          <target>Send Chat Message</target>
+        </trans-unit>
+      </group>
+      <group id="@adjustments" />
+      <group id="@groups">
+        <trans-unit id="$Twitch___@groups___Stream" translate="yes">
+          <source>Stream</source>
+          <target>Stream</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___@groups___Chat" translate="yes">
+          <source>Chat</source>
+          <target>Chat</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___@groups___SendChatMessage" translate="yes">
+          <source>SendChatMessage</source>
+          <target>SendChatMessage</target>
+        </trans-unit>
+      </group>
+      <group id="@resources">
+        <trans-unit id="$Twitch___@resources___Timeout" translate="yes">
+          <source>Timeout</source>
+          <target>Timeout</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___@resources___Ban" translate="yes">
+          <source>Ban</source>
+          <target>Ban</target>
+        </trans-unit>
+        <trans-unit id="$Twitch___@resources___Lift Ban/Timeout" translate="yes">
+          <source>Lift Ban/Timeout</source>
+          <target>Lift Ban/Timeout</target>
+        </trans-unit>
+      </group>
+      <group id="@width60" />
+      <group id="@width90" />
+    </body>
+  </file>
+</xliff>
