@@ -1,0 +1,9 @@
+[submodule "TwitchPlugin\\TwitchLib\\TwitchLib.Api"]
+	path = TwitchPlugin\\TwitchLib\\TwitchLib.Api
+	url = git@github.com:TwitchLib/TwitchLib.Api.git
+[submodule "TwitchPlugin\\TwitchLib\\TwitchLib.Client"]
+	path = TwitchPlugin\\TwitchLib\\TwitchLib.Client
+	url = git@github.com:TwitchLib/TwitchLib.Client.git
+[submodule "TwitchPlugin\\TwitchLib\\TwitchLib.Communication"]
+	path = TwitchPlugin\\TwitchLib\\TwitchLib.Communication
+	url = git@github.com:TwitchLib/TwitchLib.Communication.git
