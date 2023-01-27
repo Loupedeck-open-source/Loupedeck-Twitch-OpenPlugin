@@ -25,34 +25,20 @@ namespace Loupedeck.TwitchPlugin
     //  
     // 
     //  
-
-    public class TokensUpdatedEventArg: EventArgs
-    {
-        public String UserName { get; private set; }
-        public String AccessToken { get; private set; }
-        public String RefreshToken { get; private set; }
-        public TokensUpdatedEventArg(String _userName, String _accessToken, String _refreshToken)
-        {
-            this.UserName = _userName;
-            this.AccessToken = _accessToken;
-            this.RefreshToken= _refreshToken;
-        }
-    }
-
     public partial class TwitchProxy : IDisposable
     {
         public event EventHandler<TokensUpdatedEventArg> TokensUpdated;
-        public event EventHandler<String> Connected;
+        public event EventHandler<EventArgs> AppConnected;
         public event EventHandler<String> ConnectionError;
         public event EventHandler<EventArgs> OnTwitchAccessTokenExpired;
-
+        public event EventHandler<EventArgs> AppDisconnected;
         public void SetPorts(List<Int32> ports) => this._authServer.SetPorts(ports);
 
         private readonly AuthenticationServer _authServer;
 
         public Boolean IsConnected => this._twitchClient.IsConnected == true;
 
-        public EventHandler Disconnected { get; set; }
+        
         public EventHandler<(String, Exception)> IncorrectLogin { get; set; }
         
         private String RefreshToken { get; set; } = null;
@@ -155,7 +141,7 @@ namespace Loupedeck.TwitchPlugin
             //this.InitViewersUpdater();
          
 
-            this.Connected?.Invoke(sender, this._userInfo.Login);
+            this.AppConnected?.Invoke(sender, null);
         }
 
         private void OnTwtchClientReconnected(Object sender, OnReconnectedEventArgs e)
@@ -252,7 +238,7 @@ namespace Loupedeck.TwitchPlugin
             //this.ChattersChanged?.Invoke(this, this.Chatters);
             //this.ViewersChanged?.Invoke(this, EventArgs.Empty);
 
-            this.Disconnected?.Invoke(sender, EventArgs.Empty);
+            this.AppDisconnected?.Invoke(sender, EventArgs.Empty);
         }
         
         private void OnTwitchIncorrectLogin(Object sender, OnIncorrectLoginArgs e)
