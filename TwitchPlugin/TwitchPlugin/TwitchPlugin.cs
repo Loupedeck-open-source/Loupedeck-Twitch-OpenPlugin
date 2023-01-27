@@ -4,31 +4,27 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using TwitchLib.Api.Auth;
+    using static Loupedeck.TwitchPlugin.AuthenticationServer;
+    using TwitchLib.Api.Helix.Models.Entitlements;
 
     public class TwitchPlugin : Plugin
     {
+        private const Int32 DefaultConnectionTimerInterval = 5000;
         public static PluginLogFile PluginLog { get; private set; } = null;
 
         private const String ConfigFileName = "twitch-v2.json";
 
         private readonly PluginPreferenceAccount _twitchAccount;
 
-        private System.Timers.Timer _connectionCheckTimer;
-        private IAuthenticationServer _authenticationServer;
-        private Boolean _refreshAccessTokenRequestBlocked;
+        private TwitchPluginConfig _pluginConfig = null;
 
         public override Boolean UsesApplicationApiOnly => true;
         public override Boolean HasNoApplication => true;
-        internal static TwitchWrapper Proxy { get; private set; }
 
-        public class PluginLogFileY: PluginLogFile
-        {
-            public PluginLogFileY(string x) : base(x) { }
-            public void Error(String s, Exception ex) => this.Error(s + " exception:"+ ex.ToString());
-            public void Warning(String s, Exception ex) => this.Warning(s + " exception:" + ex.ToString());
-        }
+        internal static TwitchProxy Proxy { get; private set; }
 
-    public TwitchPlugin()
+        public TwitchPlugin()
         {
             if(TwitchPlugin.PluginLog == null) 
                 TwitchPlugin.PluginLog = this.Log; 
@@ -42,7 +38,8 @@
             };
 
             this.PluginPreferences.Add(this._twitchAccount);
-            TwitchPlugin.Proxy = new TwitchWrapper();
+
+            TwitchPlugin.Proxy = new TwitchProxy();
         }
 
         public override void Load()
@@ -50,44 +47,41 @@
             base.Load();
             this.LoadPluginIcons();
 
+
+
             TwitchPlugin.Proxy.Connected += this.OnConnected;
             TwitchPlugin.Proxy.Disconnected += this.OnDisconnected;
-            TwitchPlugin.Proxy.Reconnected += this.OnReconnected;
+            TwitchPlugin.Proxy.TokensUpdated += this.OnTokensUpdated;
+
             TwitchPlugin.Proxy.ConnectionError += this.OnConnectionError;
             TwitchPlugin.Proxy.Error += this.OnError;
             TwitchPlugin.Proxy.IncorrectLogin += this.OnIncorrectLogin;
             TwitchPlugin.Proxy.ChannelStatusChanged += this.OnChannelStateChanged;
             TwitchPlugin.Proxy.ViewersChanged += this.OnViewersChanged;
-            TwitchPlugin.Proxy.AccessTokenExpired += this.OnAccessTokenExpired;
-            this._connectionCheckTimer = new System.Timers.Timer(5000);
-            this._connectionCheckTimer.Elapsed += this.ConnectionCheckTimerOnElapsed;
-            this._authenticationServer = new AuthenticationServer();
-            this._authenticationServer.TokenReceived += this.OnTokenReceived;
+       
+
             this._twitchAccount.LoginRequested += this.OnTwitchAccountOnLoginRequested;
             this._twitchAccount.LogoutRequested += this.OnTwitchAccountOnLogoutRequested;
+            
             this.ServiceEvents.OnlineFileContentReceived += this.OnOnlineFileContentReceived;
             this.ServiceEvents.GetOnlineFileContent(ConfigFileName);
         }
 
         public override void Unload()
         {
-            this._connectionCheckTimer.Stop();
-            this._connectionCheckTimer.Elapsed -= this.ConnectionCheckTimerOnElapsed;
             TwitchPlugin.Proxy.Connected -= this.OnConnected;
             TwitchPlugin.Proxy.Disconnected -= this.OnDisconnected;
-            TwitchPlugin.Proxy.Reconnected -= this.OnReconnected;
+            TwitchPlugin.Proxy.TokensUpdated -= this.OnTokensUpdated;
             TwitchPlugin.Proxy.ConnectionError -= this.OnConnectionError;
             TwitchPlugin.Proxy.Error -= this.OnError;
             TwitchPlugin.Proxy.IncorrectLogin -= this.OnIncorrectLogin;
             TwitchPlugin.Proxy.ChannelStatusChanged -= this.OnChannelStateChanged;
             TwitchPlugin.Proxy.ViewersChanged -= this.OnViewersChanged;
-            TwitchPlugin.Proxy.AccessTokenExpired -= this.OnAccessTokenExpired;
-            this._authenticationServer.TokenReceived -= this.OnTokenReceived;
+           
             this._twitchAccount.LoginRequested -= this.OnTwitchAccountOnLoginRequested;
             this._twitchAccount.LogoutRequested -= this.OnTwitchAccountOnLogoutRequested;
             this.ServiceEvents.OnlineFileContentReceived -= this.OnOnlineFileContentReceived;
             TwitchPlugin.Proxy.Dispose();
-            this._authenticationServer.Dispose();
         }
 
         public override void RunCommand(String commandName, String parameter)
@@ -147,16 +141,6 @@
 
                     if (!String.IsNullOrEmpty(buttonText))
                     {
-                        //Rectangle rectangle = new Rectangle();
-                        //switch (imageSize)
-                        //{
-                        //    case PluginImageSize.Width60:
-                        //        //todo
-                        //        break;
-                        //    case PluginImageSize.Width90:
-                        //        rectangle = new Rectangle(10, 30, 60, 60);
-                        //        break;
-                        //}
                         bitmapBuilder.DrawText(buttonText, 10, 30, 60, 60, color: color, fontSize: fontSize); //, fontSize: 9);
                     }
 
@@ -261,7 +245,7 @@
                     TwitchPlugin.Proxy.SendMessage(".commercial");
                     break;
                 case "CreateMarker":
-                    TwitchPlugin.Proxy.CreateMarkerCommandAsync().ConfigureAwait(false);
+                    TwitchPlugin.Proxy.CreateMarkerCommand();
                     break;
                 case "CreateClip":
                     TwitchPlugin.Proxy.CreateClipCommandAsync().ConfigureAwait(false);
@@ -287,85 +271,91 @@
 
         private void OnTwitchAccountOnLoginRequested(Object sender, EventArgs e)
         {
+            //User pressed 'Login' 
             TwitchPlugin.PluginLog.Info("TwitchPlugin OnTwitchAccountOnLoginRequested");
-            this._authenticationServer.Authenticate();
+            
+            TwitchPlugin.Proxy.StartAuthentication();
         }
 
         private void OnTwitchAccountOnLogoutRequested(Object sender, EventArgs e)
         {
+            //User pressed 'Logout' 
             TwitchPlugin.PluginLog.Info("TwitchPlugin OnTwitchAccountOnLogoutRequested");
+
+            // Asking Proxy here.,
             this._twitchAccount.AccessToken = null;
             this._twitchAccount.RefreshToken = null;
             TwitchPlugin.Proxy.Disconnect();
-            this._twitchAccount.ReportLogout();
+
+            this._twitchAccount.ReportLogout(); //So that we force login for the next time
         }
 
         private void OnError(Object sender, Exception e)
         {
             TwitchPlugin.PluginLog.Warning(e,$"TwitchAPI OnError received: {e.Message}");
-            var webSocketException = e as System.Net.WebSockets.WebSocketException;
-            if (webSocketException?.ErrorCode == null && !(e is WebException))
-            {
-                return;
-            }
 
-            switch (webSocketException?.ErrorCode)
-            {
-                case 258:
-                    this._connectionCheckTimer.Stop();
-                    this.RequestRefreshAccessToken(this._twitchAccount.RefreshToken);
-                    break;
-            }
+
+            /*
+             *          FIXME: Should we set a Plugin state here instead? 
+             *          
+                        var webSocketException = e as System.Net.WebSockets.WebSocketException;
+                        if (webSocketException?.ErrorCode == null && !(e is WebException))
+                        {
+                            return;
+                        }
+                        switch (webSocketException?.ErrorCode)
+                        {
+                            case 258:
+                                this._connectionCheckTimer.Stop();
+                                this.RequestRefreshAccessToken(this._twitchAccount.RefreshToken);
+                                break;
+                        }
+            */
         }
 
         private void OnConnectionError(Object sender, String message)
         {
             TwitchPlugin.PluginLog.Info($"Connection Error: {message}");
-            this._connectionCheckTimer.Stop();
-            if (!message.Equals("Fatal network error. Network services fail to shut down."))
-            {
-                this.RequestRefreshAccessToken(this._twitchAccount.RefreshToken);
-            }
         }
 
         private void OnDisconnected(Object sender, EventArgs e)
         {
-            TwitchPlugin.PluginLog.Info("Disconnected.");
-            this._connectionCheckTimer.Stop();
-            this._twitchAccount.ReportLogout();
+            TwitchPlugin.PluginLog.Info("OnDisconnected");
         }
 
         private void OnIncorrectLogin(Object sender, (String, Exception) e)
         {
             var (_, ex) = e;
             TwitchPlugin.PluginLog.Warning(ex,$"Incorrect Login: {ex.Message}");
+
+            //FIXME: Should we set plugin status here? 
+
             this._twitchAccount.ReportLogout();
+        }
+
+        private void OnTokensUpdated(Object sender, TokensUpdatedEventArg args)
+        {
+            //Note we are coming here also after successful token refresh. 
+            TwitchPlugin.PluginLog.Info($"Twitch tokens updated for : {args.UserName}");
+
+            this._twitchAccount.AccessToken = args.AccessToken;
+            this._twitchAccount.RefreshToken = args.RefreshToken;
+
+            //Setting status and storing the tokens
+            this._twitchAccount.ReportLogin(args.UserName, this._twitchAccount.AccessToken, this._twitchAccount.RefreshToken);
         }
 
         private void OnConnected(Object sender, String username)
         {
-            TwitchPlugin.PluginLog.Info($"Connected to twitch client: {username}");
-            this._twitchAccount.ReportLogin(username, this._twitchAccount.AccessToken,
-                this._twitchAccount.RefreshToken);
-            this._connectionCheckTimer.Start();
-        }
+            TwitchPlugin.PluginLog.Info($"Connected to twitch client as {username}");
 
-        private void OnReconnected(Object sender, String username)
-        {
-            TwitchPlugin.PluginLog.Info("Reconnected.");
-            if (!TwitchPlugin.Proxy.IsConnected ||
-                !this._authenticationServer.IsTokenValid(this._twitchAccount.AccessToken))
-            {
-                return;
-            }
-
-            this._twitchAccount.ReportLogin(username, this._twitchAccount.AccessToken,
-                this._twitchAccount.RefreshToken);
-            this._connectionCheckTimer.Start();
+            this.OnPluginStatusChanged(Loupedeck.PluginStatus.Normal, "Connected!");
         }
 
         private void OnChannelStateChanged(Object sender, EventArgs e)
         {
+            //FIXME: This MUST be redone, no Channel events in Proxy
+
             this.OnActionImageChanged("ToggleSubsOnly", String.Empty);
             this.OnActionImageChanged("ToggleFollowersOnly", String.Empty);
             this.OnActionImageChanged("ToggleEmotesOnly", String.Empty);
@@ -374,42 +364,7 @@
             this.OnActionImageChanged("ToggleFollowersOnlyList", String.Empty);
         }
 
-        private void OnViewersChanged(Object sender, EventArgs e)
-        {
-            this.OnActionImageChanged("ViewerCount", null);
-        }
-
-        private void OnAccessTokenExpired(Object sender, EventArgs e)
-        {
-            TwitchPlugin.PluginLog.Info("TwitchPlugin OnAccessTokenExpired");
-            this.RequestRefreshAccessToken(this._twitchAccount.RefreshToken);
-        }
-
-        private void RequestRefreshAccessToken(String refreshToken)
-        {
-            TwitchPlugin.PluginLog.Info("TwitchPlugin RequestRefreshAccessToken");
-            if (this._refreshAccessTokenRequestBlocked)
-            {
-                return;
-            }
-
-            this._refreshAccessTokenRequestBlocked = true;
-
-            try
-            {
-                TwitchPlugin.PluginLog.Warning("Access token has expired.");
-                this._authenticationServer.RefreshAccessToken(refreshToken);
-            }
-            catch (Exception ex)
-            {
-                TwitchPlugin.PluginLog.Warning(ex, "Twitch: Failed to refresh token.");
-                this._twitchAccount.ReportLogout();
-            }
-            finally
-            {
-                this._refreshAccessTokenRequestBlocked = false;
-            }
-        }
+        private void OnViewersChanged(Object sender, EventArgs e) => this.OnActionImageChanged("ViewerCount", null);
 
         private void ResetSettings()
         {
@@ -451,69 +406,48 @@
             }
 
             var json = System.Text.Encoding.UTF8.GetString(e.GetFileContent() ?? Array.Empty<Byte>());
+
             if (!JsonHelpers.TryDeserializeAnyObject<TwitchPluginConfig>(json, out var pluginConfig) || pluginConfig == null)
             {
                 TwitchPlugin.PluginLog.Warning(
                     "TwitchPlugin OnOnlineFileContentReceived: couldn't deserialize TwitchPluginConfig json, reading plugin config file from cache");
+
+                //TODO: Document that for 3rd party
                 if (!this.TryGetPluginSetting(ConfigFileName, out json))
                 {
                     TwitchPlugin.PluginLog.Error("TwitchPlugin OnOnlineFileContentReceived: couldn't read config file from cache");
                     this.OnPluginStatusChanged(Loupedeck.PluginStatus.Error, "No connection to Loupedeck Server.", null,
                         null);
+
                     return;
                 }
 
                 pluginConfig = JsonHelpers.DeserializeObject<TwitchPluginConfig>(json);
+
+                this._pluginConfig = pluginConfig;
             }
             else
             {
                 this.SetPluginSetting(ConfigFileName, json);
             }
 
-            TwitchPlugin.Proxy.Initialize(pluginConfig.ClientId, pluginConfig.ClientSecret);
-            this._authenticationServer.Start(pluginConfig);
-            if (String.IsNullOrEmpty(this._twitchAccount.AccessToken) ||
-                String.IsNullOrEmpty(this._twitchAccount.RefreshToken))
-            {
-                TwitchPlugin.PluginLog.Info("TwitchPlugin OnOnlineFileContentReceived: token not cached");
-                this._twitchAccount.ReportLogout();
-                return;
-            }
+            TwitchPlugin.Proxy.SetClientCredentials(pluginConfig.ClientId, pluginConfig.ClientSecret);
+            TwitchPlugin.Proxy.SetPorts(pluginConfig.Ports);
 
-            if (!this._authenticationServer.IsTokenValid(this._twitchAccount.AccessToken))
-            {
-                TwitchPlugin.PluginLog.Info("TwitchPlugin OnOnlineFileContentReceived: cached toke expired");
-                this.RequestRefreshAccessToken(this._twitchAccount.RefreshToken);
-                return;
-            }
 
-            try
+            if (!String.IsNullOrEmpty(this._twitchAccount.AccessToken) &&
+                !String.IsNullOrEmpty(this._twitchAccount.RefreshToken)
+                && TwitchProxy.ValidateAccessToken(this._twitchAccount.AccessToken, out var validationResp) )
             {
-                TwitchPlugin.Proxy.Connect(this._twitchAccount.AccessToken).Wait();
+                TwitchPlugin.PluginLog.Info("Attempting to connect with cached tokens");
+                Proxy.PreconfiguredConnect(this._twitchAccount, validationResp);
             }
-            catch (Exception)
+            else
             {
-                this._twitchAccount.ReportLogout();
-            }
-        }
-
-        private void OnTokenReceived(Object sender, Token token)
-        {
-            try
-            {
-                if (token.AccessToken == null || token.RefreshToken == null)
-                {
-                    TwitchPlugin.PluginLog.Warning("Twitch OnTokenReceived: Empty access token.");
-                    return;
-                }
-
-                this._twitchAccount.AccessToken = token.AccessToken;
-                this._twitchAccount.RefreshToken = token.RefreshToken;
-                TwitchPlugin.Proxy.Connect(token.AccessToken).Wait();
-            }
-            catch (Exception e)
-            {
-                TwitchPlugin.PluginLog.Error(e,$"Twitch OnTokenReceived error: {e.Message}");
+                this._twitchAccount.AccessToken = null;
+                this._twitchAccount.RefreshToken = null;
+                
+                TwitchPlugin.PluginLog.Info("TwitchPlugin OnOnlineFileContentReceived: token not cached or invalid. Need manual relogin");
                 this._twitchAccount.ReportLogout();
             }
         }
@@ -524,35 +458,6 @@
             this.Info.Icon32x32 = EmbeddedResources.ReadImage("Loupedeck.TwitchPlugin.metadata.Icon32x32.png");
             this.Info.Icon48x48 = EmbeddedResources.ReadImage("Loupedeck.TwitchPlugin.metadata.Icon48x48.png");
             this.Info.Icon256x256 = EmbeddedResources.ReadImage("Loupedeck.TwitchPlugin.metadata.Icon256x256.png");
-        }
-
-        private void ConnectionCheckTimerOnElapsed(Object sender, System.Timers.ElapsedEventArgs e)
-        {
-            try
-            {
-                this._connectionCheckTimer.Stop();
-                if (TwitchPlugin.Proxy.IsConnected || String.IsNullOrEmpty(this._twitchAccount.AccessToken))
-                {
-                    this._connectionCheckTimer.Start();
-                    return;
-                }
-
-                if (this._authenticationServer.IsTokenValid(this._twitchAccount.AccessToken))
-                {
-                    TwitchPlugin.PluginLog.Info(
-                        "TwitchPlugin ConnectionCheckTimerOnElapsed: token is valid, connecting TwitchWrapper");
-
-                    _ = TwitchPlugin.Proxy.Connect(this._twitchAccount.AccessToken);
-                    return;
-                }
-
-                TwitchPlugin.PluginLog.Info("TwitchPlugin ConnectionCheckTimerOnElapsed: token invalid");
-                this.RequestRefreshAccessToken(this._twitchAccount.RefreshToken);
-            }
-            catch (Exception ex)
-            {
-                TwitchPlugin.PluginLog.Error(ex,$"TwitchPlugin ConnectionCheckTimerOnElapsed error: {ex.Message}");
-            }
         }
 
         private static TimeSpan ParseTimeSpan(String str)
@@ -581,6 +486,4 @@
         public static void Trace(String line) => TwitchPlugin.PluginLog.Info("TW:" + line); 
 
     }
-
-
 }

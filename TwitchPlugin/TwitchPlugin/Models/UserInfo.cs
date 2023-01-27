@@ -4,13 +4,13 @@
 
     public class UserInfo
     {
-        public UserInfo(Int32 id, String login)
+        public UserInfo(String id, String login)
         {
             this.Id = id;
             this.Login = login;
         }
 
-        public Int32 Id { get; set; }
+        public String Id { get; set; }
         public String Login { get; set; }
     }
 }
