@@ -46,4 +46,21 @@
 
     }
 
+
+    public class TokensUpdatedEventArg : EventArgs
+    {
+        public String UserName { get; private set; }
+        public String AccessToken { get; private set; }
+        public String RefreshToken { get; private set; }
+        public TokensUpdatedEventArg(String _userName, String _accessToken, String _refreshToken)
+        {
+            this.UserName = _userName;
+            this.AccessToken = _accessToken;
+            this.RefreshToken = _refreshToken;
+        }
+    }
+
+
+
+
 }
