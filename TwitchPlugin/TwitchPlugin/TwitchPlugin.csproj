@@ -65,6 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\UniversalStateSwitch.cs" />
     <None Include="Actions\ChatFlwOnlyToggleCmd.cs" />
     <Compile Include="Actions\ChatSubToggleCmd.cs" />
     <None Include="Actions\ChatSlowModeToggleCmd.cs" />
