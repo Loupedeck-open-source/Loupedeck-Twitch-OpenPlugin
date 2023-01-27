@@ -29,6 +29,23 @@
             TwitchPlugin.Proxy.AppEvtChatEmotesOnlyOn -= eventSwitchedOn;
         }
 
-        protected override void RunToggle() => TwitchPlugin.Proxy.AppToggleEmotesOnly();
+        protected override void RunCommand(TwoStateCommand command)
+        {
+            switch (command)
+            {
+                case TwoStateCommand.TurnOff:
+                    TwitchPlugin.Proxy.AppEmotesOnlyOff();
+                    break;
+
+                case TwoStateCommand.TurnOn:
+                    TwitchPlugin.Proxy.AppEmotesOnlyOn();
+                    break;
+
+                case TwoStateCommand.Toggle:
+                    TwitchPlugin.Proxy.AppToggleEmotesOnly();
+                    break;
+            }
+        }
+
     }
 }

@@ -29,6 +29,22 @@
             TwitchPlugin.Proxy.AppEvtChatSubscribersOnlyOff -= eventSwitchedOff;
         }
 
-        protected override void RunToggle() => TwitchPlugin.Proxy.AppToggleSubscribersOnly();
+        protected override void RunCommand(TwoStateCommand command)
+        {
+            switch (command)
+            {
+                case TwoStateCommand.TurnOff:
+                    TwitchPlugin.Proxy.AppSubscribersOnlyOff();
+                    break;
+
+                case TwoStateCommand.TurnOn:
+                    TwitchPlugin.Proxy.AppSubscribersOnlyOn();
+                    break;
+
+                case TwoStateCommand.Toggle:
+                    TwitchPlugin.Proxy.AppToggleSubscribersOnly();
+                    break;
+            }
+        }
     }
 }
