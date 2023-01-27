@@ -10,23 +10,23 @@
                             displayName: "(new) Chat Emotes-Only",
                             description: "Toggles chat emotes-only mode",
                             groupName: "",
-                            offStateName: "Chat Emotes-Only On",
-                            onStateName: "Chat Emotes-Only Off",
-                            offStateImage: "TwitchEmoteChat.png",
-                            onStateImage: "TwitchEmoteChatToggle.png")
+                            onStateName: "Emotes-Only chat is On",
+                            offStateName: "Emotes-Only chat is Off",
+                            onStateImage: "TwitchEmoteChat.png",
+                            offStateImage: "TwitchEmoteChatToggle.png")
         {
         }
 
         protected override void ConnectAppEvents(EventHandler<EventArgs> eventSwitchedOff, EventHandler<EventArgs> eventSwitchedOn)
         {
-            TwitchPlugin.Proxy.AppEvtChatEmotesOnlyOff += eventSwitchedOn;
-            TwitchPlugin.Proxy.AppEvtChatEmotesOnlyOn += eventSwitchedOff;
+            TwitchPlugin.Proxy.AppEvtChatEmotesOnlyOff += eventSwitchedOff;
+            TwitchPlugin.Proxy.AppEvtChatEmotesOnlyOn += eventSwitchedOn;
         }
 
         protected override void DisconnectAppEvents(EventHandler<EventArgs> eventSwitchedOff, EventHandler<EventArgs> eventSwitchedOn)
         {
-            TwitchPlugin.Proxy.AppEvtChatEmotesOnlyOff -= eventSwitchedOn;
-            TwitchPlugin.Proxy.AppEvtChatEmotesOnlyOn -= eventSwitchedOff;
+            TwitchPlugin.Proxy.AppEvtChatEmotesOnlyOff -= eventSwitchedOff;
+            TwitchPlugin.Proxy.AppEvtChatEmotesOnlyOn -= eventSwitchedOn;
         }
 
         protected override void RunToggle() => TwitchPlugin.Proxy.AppToggleEmotesOnly();
