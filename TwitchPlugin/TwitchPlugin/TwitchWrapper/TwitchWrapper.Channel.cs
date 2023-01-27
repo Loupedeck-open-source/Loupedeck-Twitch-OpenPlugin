@@ -5,15 +5,19 @@
     using TwitchLib.Api.Core.Exceptions;
     using TwitchLib.Client.Events;
     using System.Linq;
+    using TwitchLib.Client.Models;
+    using TwitchLib.Api.Helix.Models.Search;
+    using System.Runtime.CompilerServices;
+    using System.Collections.Generic;
+    using System.Net.Http.Headers;
 
-    public partial class TwitchWrapper : IDisposable
+    public partial class TwitchProxy : IDisposable
     {
         public EventHandler ChannelStatusChanged { get; set; }
-        public Boolean IsSubOnly => this._channelState?.SubOnly == true;
-        public Boolean IsEmoteOnly => this._channelState?.EmoteOnly == true;
-        public Int32 SlowMode => this._channelState?.SlowMode ?? 0;
-        public TimeSpan FollowersOnly => this._channelState?.FollowersOnly ?? TimeSpan.Zero;
-
+        public Boolean IsSubOnly { get; private set; }
+        public Boolean IsEmoteOnly { get; private set; }
+        public Int32 SlowMode { get; private set; }
+        public TimeSpan FollowersOnly { get; private set; }
         public Boolean IsSlowMode => this.SlowMode != 0;
         public Boolean IsFollowersOnly => this.FollowersOnly != TimeSpan.Zero;
 
@@ -29,24 +33,10 @@
         public event EventHandler<EventArgs> AppEvtChatSlowModeOn;
         public event EventHandler<EventArgs> AppEvtChatSlowModeOff;
 
-
-        public void AppToggleEmotesOnly()
-        {
-            this.SendMessage(this.IsEmoteOnly ? ".emoteonlyoff" : ".emoteonly");
-        }
-        public void AppToggleSubscribersOnly()
-        {
-            this.SendMessage(this.IsSubOnly ? ".subscribersoff" : ".subscribers");
-        }
-        public void AppToggleFollowersOnly()
-        {
-            this.SendMessage(this.IsFollowersOnly ? ".followersoff" : ".followerson 10m");
-        }
-        public void AppToggleSlowMode()
-        {
-            this.SendMessage(TwitchPlugin.Proxy.IsSlowMode ? ".slowoff" : ".slow 30");
-        }
-
+        public void AppToggleEmotesOnly() => this.SendMessage(this.IsEmoteOnly ? ".emoteonlyoff" : ".emoteonly");
+        public void AppToggleSubscribersOnly() => this.SendMessage(this.IsSubOnly ? ".subscribersoff" : ".subscribers");
+        public void AppToggleFollowersOnly() => this.SendMessage(this.IsFollowersOnly ? ".followersoff" : ".followerson 10m");
+        public void AppToggleSlowMode() => this.SendMessage(TwitchPlugin.Proxy.IsSlowMode ? ".slowoff" : ".slow 30");
 
         public void CreateMarkerCommand()
         {
@@ -64,12 +54,10 @@
                     market_str += d.ToString() + ", ";
                 }
                 TwitchPlugin.PluginLog.Info($"Set Marker to the stream, returned data {market_str}");
-
-                
             }
             catch (TokenExpiredException)
             {
-                this.AccessTokenExpired?.Invoke(this, EventArgs.Empty);
+                this.OnTwitchAccessTokenExpired?.BeginInvoke(this, EventArgs.Empty);
             }
             catch (Exception e)
             {
@@ -86,7 +74,7 @@
             }
             catch (TokenExpiredException)
             {
-                this.AccessTokenExpired?.Invoke(this, EventArgs.Empty);
+                this.OnTwitchAccessTokenExpired?.BeginInvoke(this, EventArgs.Empty);
             }
             catch (Exception e)
             {
@@ -94,81 +82,71 @@
             }
         }
 
+        //Ensures that we have joined own channel and, if not, joins channel and optionally runs the callback
+        private void EnsureOnOwnChannel(Action callback = null)
+        {
+            if (this._twitchClient.JoinedChannels.All(c => !c.Channel.Equals(this._userInfo.Login)))
+            {
+                this.JoinChannel(this._userInfo.Login,callback);
+            }
+            else
+            {
+                callback?.Invoke();
+            }
+        }
+         
+        private void SetChannelFlags(OnChannelStateChangedArgs a)
+        {
+            ChannelState state = a?.ChannelState;
+
+              this.IsSubOnly = state?.SubOnly == true;
+              this.IsEmoteOnly = state?.EmoteOnly == true;
+              this.SlowMode = state?.SlowMode ?? 0;
+              this.FollowersOnly =  state?.FollowersOnly ?? TimeSpan.Zero;
+        }
+       
         private void OnChannelStateChanged(Object sender, OnChannelStateChangedArgs e)
         {
+            void ConditionallyFireEvent(Boolean changed, Boolean condition, EventHandler<EventArgs> ChangedToTrueEvent, EventHandler<EventArgs> changedToFalseEvent)
+            {
+                if (changed)
+                {
+                    if (condition)
+                    {
+                        ChangedToTrueEvent?.Invoke(this, e);
+                    }
+                    else
+                    {
+                        changedToFalseEvent?.Invoke(this, e);
+                    }
+                }
+            }
+
             if (e.Channel != this._userInfo.Login)
             {
                 return;
             }
 
-            if (this._twitchClient.JoinedChannels.All(c => !c.Channel.Equals(this._userInfo.Login)))
+            this.EnsureOnOwnChannel(()=>
             {
-                this._twitchClient.JoinChannel(this._userInfo.Login);
-            }
+                var prev_emote = this.IsEmoteOnly;
+                var prev_sub = this.IsSubOnly;
+                var prev_follow = this.FollowersOnly;
+                var prev_slow = this.SlowMode;
 
-            var prev_emote = this.IsEmoteOnly;
-            var prev_sub = this.IsSubOnly;
-            var prev_follow = this.FollowersOnly;
-            var prev_slow = this.SlowMode;
+                this.SetChannelFlags(e);
 
-            this._channelState = e.ChannelState;
+                ConditionallyFireEvent(this.IsEmoteOnly != prev_emote, this.IsEmoteOnly, this.AppEvtChatEmotesOnlyOn, this.AppEvtChatEmotesOnlyOff);
+                ConditionallyFireEvent(this.IsSubOnly != prev_sub, this.IsSubOnly, this.AppEvtChatSubscribersOnlyOn, this.AppEvtChatSubscribersOnlyOff);
 
-            if (this.IsEmoteOnly != prev_emote)
-            {
-                if (this.IsEmoteOnly)
-                {
-                    this.AppEvtChatEmotesOnlyOn.Invoke(this, e);
-                }
-                else
-                {
-                    this.AppEvtChatEmotesOnlyOff.Invoke(this, e);
-                }
-            }
+                ConditionallyFireEvent(this.FollowersOnly != prev_follow, this.IsFollowersOnly, this.AppEvtChatFollowersOnlyOn, this.AppEvtChatFollowersOnlyOff);
+                ConditionallyFireEvent(this.SlowMode != prev_slow, this.IsSlowMode, this.AppEvtChatSlowModeOn, this.AppEvtChatSlowModeOff);
 
-            if (this.IsSubOnly != prev_sub)
-            {
-                if (this.IsSubOnly)
-                {
-                    this.AppEvtChatSubscribersOnlyOn.Invoke(this, e);
-                }
-                else
-                {
-                    this.AppEvtChatSubscribersOnlyOff.Invoke(this, e);
-                }
-            }
-            /*
-             *  This is not yet needed
-                        if (this.FollowersOnly != prev_follow)
-                        {
-                            if (this.IsFollowersOnly)
-                            {
-                                this.AppEvtChatFollowersOnlyOn.Invoke(this, e);
-                            }
-                            else
-                            {
-                                this.AppEvtChatFollowersOnlyOff.Invoke(this, e);
-                            }
-                        }
-
-                        if (this.SlowMode != prev_slow)
-                        {
-                            if (this.IsSlowMode)
-                            {
-                                this.AppEvtChatSlowModeOn.Invoke(this, e);
-                            }
-                            else
-                            {
-                                this.AppEvtChatSlowModeOff.Invoke(this, e);
-                            }
-                        }
-            */
-            this.ChannelStatusChanged?.Invoke(this, EventArgs.Empty);
+                this.ChannelStatusChanged?.Invoke(this, EventArgs.Empty);
+            });
         }
 
-        private void OnJoinedChannel(Object sender, OnJoinedChannelArgs e)
-        {
-            TwitchPlugin.PluginLog.Info($"Joined channel: {e.Channel}");
-        }
+        private void OnJoinedChannel(Object sender, OnJoinedChannelArgs e) => TwitchPlugin.PluginLog.Info($"Joined channel: {e.Channel}");
 
         private void JoinChannel(String channel, Action callback = null)
         {
@@ -187,6 +165,66 @@
             this._twitchClient.JoinChannel(channel);
         }
 
-    }
+        private void OnUnaccountedFor(Object e, OnUnaccountedForArgs args)
+        {
+            // Sometimes, the status of the channel we know and the status of the real
+            // channel go out-of-sync, and then we start receiving this type of NOTICE messages:
+            // "@msg-id=already_subs_on :tmi.twitch.tv NOTICE #laperie :This room is already in subscribers-only mode."
+            // We will parse them here and make sure our internal status is up-to-date with the channel
 
+            const String MsgIdPrefix = "@msg-id=";
+            const String MsgAlready = "already_";
+
+            var tag = ""; 
+            if(!Helpers.TryExecuteSafe(() =>
+            {
+                var startIndex = args.RawIRC.IndexOf(MsgIdPrefix);
+                startIndex += MsgIdPrefix.Length;
+                var endIndex = -1;
+                if (startIndex > -1)
+                {
+                    endIndex = args.RawIRC.IndexOf(" ", startIndex);
+                    
+                }
+                if (endIndex > -1)
+                {
+                    tag = args.RawIRC.Substring(startIndex, endIndex - startIndex);
+
+                    //if string starts with the "already_", we remove it
+                    if(tag.StartsWith(MsgAlready))
+                    {
+                        tag.Remove(0,MsgAlready.Length);
+                    }
+                }
+            }
+            ))
+            {
+                TwitchPlugin.PluginLog.Warning("OnUnaccountedFor: Exception!");
+            }
+            else if (tag!="")
+            {
+                TwitchPlugin.PluginLog.Info($"Retreived unaccounted tag: {tag}");
+
+                //TODO : Figure out this ON/OFF state correspondence!
+                switch (tag)
+                {
+                    case "emote_only_off":   
+                        this.AppEvtChatEmotesOnlyOff?.Invoke(this, null); 
+                        break;
+
+                    case "emote_only_on":  
+                        this.AppEvtChatEmotesOnlyOn?.Invoke(this, null); 
+                        break;
+
+                    case "subs_off": 
+                        this.AppEvtChatSubscribersOnlyOff?.Invoke(this, null); 
+                        break;
+
+                    case "subs_on": 
+                        this.AppEvtChatSubscribersOnlyOn?.Invoke(this, null); 
+                        break;
+                }
+            }
+        }
+    }
 }

@@ -6,83 +6,68 @@
     using System.Threading;
     using TwitchLib.Api.Core.Exceptions;
     using System.Linq;
+    using TwitchLib.Communication.Events;
+    using TwitchLib.Client.Events;
 
-    public partial class TwitchWrapper : IDisposable
+    public partial class TwitchProxy : IDisposable
     {
-        private CancellationTokenSource _viewerUpdaterCancellationTokenSource = new CancellationTokenSource();
-
         private readonly Object _viewersLock = new Object();
-        public EventHandler ViewersChanged { get; set; }
 
-        public Int32 CurrentViewersCount { get; private set; }
+        public event EventHandler<EventArgs> ViewersChanged;
 
-        internal void InitViewersUpdater()
+        private readonly System.Timers.Timer _viewersUpdatetimer = null;
+        private Int32 _currentViewersCount;
+
+        public Int32 CurrentViewersCount 
         {
-            TwitchPlugin.PluginLog.Info("TwitchWrapper InitViewersUpdater");
-            this.StopViewersUpdater();
-            this._viewerUpdaterCancellationTokenSource = new CancellationTokenSource();
-            Task.Run(this.StartUpdateViewersAsync, this._viewerUpdaterCancellationTokenSource.Token);
-        }
-
-        internal void StopViewersUpdater()
-        {
-            TwitchPlugin.PluginLog.Info("TwitchWrapper StopViewersUpdater");
-
-            try
+            get
             {
-                this._viewerUpdaterCancellationTokenSource.Cancel();
+                return this._currentViewersCount;
             }
-            catch (Exception ex)
-            {
-                TwitchPlugin.PluginLog.Error(ex, "Error stopping viewers updater");
-            }
-        }
 
-        private async Task StartUpdateViewersAsync()
-        {
-            TwitchPlugin.PluginLog.Info("TwitchWrapper StartUpdateViewersAsync");
-
-            try
+            private set
             {
-                while (!this._viewerUpdaterCancellationTokenSource.IsCancellationRequested)
-                {
-                    await this.UpdateViewersAsync();
-                    await Task.Delay(10000);
-                }
-            }
-            catch (ThreadAbortException ex)
-            {
-                TwitchPlugin.PluginLog.Error(ex, "\nTwitch UpdateViewers stopped");
-            }
-        }
-
-        private async Task UpdateViewersAsync()
-        {
-            try
-            {
-                if (!String.IsNullOrEmpty(this.twitchApi.Settings.AccessToken) && this._twitchClient.IsConnected)
-                {
-                    this.CurrentViewersCount = await this.GetViewersAsync(this._userInfo.Login);
+                if(this._currentViewersCount != value)
+                { 
+                    this._currentViewersCount = value;
                     this.ViewersChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
+        }
+
+        private void OnViewersUpdateTimerTick(Object _, Object _1)
+        {
+            try
+            {
+                var viewers = 0; 
+                if (this.IsConnected)
+                {
+                    var response = this.twitchApi.Helix.Streams.GetStreamsAsync(first: 1, userLogins: new List<String> { this._userInfo.Login }).Result;
+                    TwitchPlugin.PluginLog.Info("Updating viewers");
+                    if((response != null) && (response.Streams.Count() > 0)) 
+                    {
+                        viewers = response.Streams[0].ViewerCount;
+                    }
+                }
+                this.CurrentViewersCount = viewers;
+            }
             catch (Exception ex) when (ex is TokenExpiredException || ex is BadScopeException)
             {
-                this.StopViewersUpdater();
-                this.AccessTokenExpired?.Invoke(this, EventArgs.Empty);
+                //For whatever reason we might be those getting this first...
+                TwitchPlugin.PluginLog.Error(ex, $"OnViewersUpdateTimerTick error: {ex.Message}");
+                this.OnTwitchAccessTokenExpired?.BeginInvoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
-                TwitchPlugin.PluginLog.Error(ex, $"TwitchWrapper UpdateViewersAsync error: {ex.Message}");
+                //TODO: Figure out 
+                TwitchPlugin.PluginLog.Error(ex, $"OnViewersUpdateTimerTick error: {ex.Message}");
             }
         }
 
-        private async Task<Int32> GetViewersAsync(String userLogin)
-        {
-            var stream = await this.twitchApi.Helix.Streams
-                .GetStreamsAsync(first: 1, userLogins: new List<string> { userLogin }) ?? null;
-            var currentStream = stream?.Streams?.FirstOrDefault();
-            return currentStream?.ViewerCount ?? 0;
-        }
+        private void StartViewersUpdateTimer(Object sender, TwitchLib.Client.Events.OnConnectedArgs e) =>
+            //We're connected
+            this._viewersUpdatetimer.Enabled = true;
+
+        private void StopViewersUpdateTimer(Object sender, OnDisconnectedEventArgs e) => this._viewersUpdatetimer.Enabled = false;
     }
 }

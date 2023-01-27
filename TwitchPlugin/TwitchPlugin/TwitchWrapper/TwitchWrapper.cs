@@ -2,13 +2,13 @@
 {
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using TwitchLib.Api;
     using TwitchLib.Api.Core;
     using TwitchLib.Api.Core.Exceptions;
     using TwitchLib.Client;
     using TwitchLib.Client.Events;
-    using TwitchLib.Client.Models;
     using TwitchLib.Communication.Events;
 
     /*
@@ -31,26 +31,18 @@
      
      */
 
-    public partial class TwitchWrapper : IDisposable
+    public partial class TwitchProxy : IDisposable
     {
         public TwitchAPI twitchApi { get; private set; }
+        public EventHandler<Exception> Error { get; set; }
+
         private readonly TwitchClient _twitchClient;
+
         private UserInfo _userInfo;
 
-        private ChannelState _channelState;
+        private readonly TwitchPluginLoggerFactory _loggerFactory = new TwitchPluginLoggerFactory();
 
-        private TwitchPluginLoggerFactory _loggerFactory = new TwitchPluginLoggerFactory();
-
-        public EventHandler AccessTokenExpired { get; set; }
-        public EventHandler<String> Connected { get; set; }
-        public EventHandler Disconnected { get; set; }
-        public EventHandler<String> Reconnected { get; set; }
-        public EventHandler<String> ConnectionError { get; set; }
-        public EventHandler<Exception> Error { get; set; }
-        public EventHandler<(String, Exception)> IncorrectLogin { get; set; }
-        public Boolean IsConnected => this._twitchClient?.IsConnected == true;
-
-        public TwitchWrapper()
+        public TwitchProxy()
         {
             this.twitchApi = new TwitchAPI(loggerFactory: this._loggerFactory, settings: new ApiSettings
             {
@@ -62,193 +54,134 @@
 
             this._twitchClient = new TwitchClient(logger: this._loggerFactory.CreateLogger<TwitchLib.Client.TwitchClient>());
 
+            this._refreshTokenTimer = new System.Timers.Timer();
+            this._refreshTokenTimer.AutoReset = false;
+            this._refreshTokenTimer.Elapsed += (e, s) => this.OnRefreshTokenTimerTick(null, null);
+            this._refreshTokenTimer.Enabled = false;
+
+            this._viewersUpdatetimer = new System.Timers.Timer();
+            this._viewersUpdatetimer.AutoReset = true;
+            this._viewersUpdatetimer.Interval = 10000;
+            this._viewersUpdatetimer.Elapsed += (e, s) => this.OnViewersUpdateTimerTick(null, null);
+
             this._twitchClient.OnConnected += this.OnTwitchClientConnected;
             this._twitchClient.OnDisconnected += this.OnTwitchClientDisconnected;
 
+            this._twitchClient.OnUnaccountedFor += this.OnUnaccountedFor;
+
+            this._twitchClient.OnConnected += this.StartViewersUpdateTimer;
+            this._twitchClient.OnDisconnected += this.StopViewersUpdateTimer;
+
+            this.OnTwitchAccessTokenExpired += this.OnAccessTokenExpired;
+
             this._twitchClient.OnJoinedChannel += this.OnJoinedChannel;
             this._twitchClient.OnChannelStateChanged += this.OnChannelStateChanged;
+
             /* we are not using these yet:  
              * this._twitchClient.OnUserJoined += this.OnUserJoined;
              * this._twitchClient.OnUserLeft += this.OnUserLeft;
              */
-            this._twitchClient.OnReconnected += this.OnReconnected;
-            this._twitchClient.OnIncorrectLogin += this.OnIncorrectLogin;
-            this._twitchClient.OnConnectionError += this.OnConnectionError;
+            this._twitchClient.OnReconnected += this.OnTwtchClientReconnected;
+            this._twitchClient.OnIncorrectLogin += this.OnTwitchIncorrectLogin;
+            this._twitchClient.OnConnectionError += this.OnTwitchConnectionError;
             this._twitchClient.OnError += this.OnError;
- 
-        }
 
-        public void SetClientCredentials(String clientID, String clientSecret)
-        {
-            this.twitchApi.Settings.ClientId = clientID;
-            this.twitchApi.Settings.Secret = clientSecret; 
-        }
+            this._authServer = new AuthenticationServer();
+            this._authServer.OnTokenReceived += this.OnAccessTokenReceived;
+            this._authServer.OnTokenError += this.OnAccessTokenError;
 
-
-
-        public void Connect(String accessToken)
-        {
-            TwitchPlugin.PluginLog.Info("TwitchWrapper Connect");
-
-            try
-            {
-
-                this.twitchApi.Settings.AccessToken = accessToken;
-                if (this._twitchClient?.IsConnected == true)
-                {
-                    TwitchPlugin.PluginLog.Info("Already connected. Disconnecting");
-
-                    //this.StopViewersUpdater();
-                    //FIXME: Check if we need to suspend OnDisconnected of twitchClient
-                    this._twitchClient.Disconnect();
-                    //this._twitchClient.Dispose();
-                }
-
-                
-                //FIXME: WHY WE ALWAYS NEED TO GO ASK TWITCH FOR THAT???
-                var tokenInfo = AuthenticationServer.GetTokenInfo(accessToken);
-                this._userInfo = new UserInfo(tokenInfo.UserId, tokenInfo.Login);
-
-
-
-                this._twitchClient.Initialize(
-                    new ConnectionCredentials(this._userInfo.Login, accessToken),
-                    this._userInfo.Login);
-
-                //await this.FetchChattersAsync();
-
-                if(!this._twitchClient.Connect())
-                {
-                    TwitchPlugin.PluginLog.Error("Error executing twitchClient.Connect");
-                } 
-            }
-            catch (Exception e)
-            {
-                TwitchPlugin.PluginLog.Error(e,$"TwitchWrapper Connect error: {e.Message}");
-                throw;
-            }
-        }
-
-        public void Disconnect()
-        {
-            TwitchPlugin.PluginLog.Info("TwitchWrapper Disconnect");
-
-            try
-            {
-                if (this.twitchApi != null)
-                {
-                    this.twitchApi.Settings.AccessToken = null;
-                }
-               
-                if (this._twitchClient == null)
-                {
-                    return;
-                }
-
-                this.StopViewersUpdater();
-
-                this._twitchClient.Disconnect();
-                //this._twitchClient.Dispose()
-                this.CurrentViewersCount = 0;
-                
-                //this.Chatters.Clear();
-                //this.ChattersChanged?.Invoke(this, this.Chatters);
-
-                this.ViewersChanged?.Invoke(this, EventArgs.Empty);
-            }
-            catch (Exception e)
-            {
-                TwitchPlugin.PluginLog.Error(e,$"TwitchWrapper Disconnect error: {e.Message}");
-                throw;
-            }
+            this.SetChannelFlags(null);
         }
 
         public void SendMessage(String message)
         {
             try
             {
-                //This IF statement is there so that we ensure we are on the channel before sending a message 
-                if (this._twitchClient.JoinedChannels.All(c => !c.Channel.Equals(this._userInfo.Login)))
+                this.EnsureOnOwnChannel(() =>
                 {
-                    this.JoinChannel(this._userInfo.Login, () =>
-                    {
-                        this._twitchClient.SendMessage(this._userInfo.Login, message);
-                    });
-                    return;
-                }
-
-                this._twitchClient.SendMessage(this._userInfo.Login, message);
+                    this._twitchClient.SendMessage(this._userInfo.Login, message);
+                });
             }
             catch (TokenExpiredException)
             {
-                this.AccessTokenExpired?.Invoke(this, EventArgs.Empty);
+                this.OnTwitchAccessTokenExpired?.BeginInvoke(this, EventArgs.Empty);
             }
         }
 
         public void Dispose()
         {
-            this.StopViewersUpdater();
-            //this._twitchClient?.Dispose();
-            this._viewerUpdaterCancellationTokenSource?.Dispose();
             this._twitchClient.OnConnected -= this.OnTwitchClientConnected;
             this._twitchClient.OnDisconnected -= this.OnTwitchClientDisconnected;
+            this._twitchClient.OnUnaccountedFor -= this.OnUnaccountedFor;
 
+            this._twitchClient.OnConnected -= this.StartViewersUpdateTimer;
+            this._twitchClient.OnDisconnected -= this.StopViewersUpdateTimer;
+
+            this.OnTwitchAccessTokenExpired -= this.OnAccessTokenExpired;
+            
             this._twitchClient.OnJoinedChannel -= this.OnJoinedChannel;
             this._twitchClient.OnChannelStateChanged -= this.OnChannelStateChanged;
 
             //this._twitchClient.OnUserJoined -= this.OnUserJoined;
             //this._twitchClient.OnUserLeft -= this.OnUserLeft;
 
-            this._twitchClient.OnReconnected -= this.OnReconnected;
+            this._twitchClient.OnReconnected -= this.OnTwtchClientReconnected;
             
-            this._twitchClient.OnIncorrectLogin -= this.OnIncorrectLogin;
-            this._twitchClient.OnConnectionError -= this.OnConnectionError;
+            this._twitchClient.OnIncorrectLogin -= this.OnTwitchIncorrectLogin;
+            this._twitchClient.OnConnectionError -= this.OnTwitchConnectionError;
             this._twitchClient.OnError -= this.OnError;
+
+            this._authServer.OnTokenReceived -= this.OnAccessTokenReceived;
+            this._authServer.OnTokenError -= this.OnAccessTokenError;
         }
 
-        
+        private void OnError(Object sender, OnErrorEventArgs e) => this.Error?.Invoke(sender, e.Exception);
 
-        private void OnConnectionError(Object sender, OnConnectionErrorArgs e)
+#if DEBUG
+        public Dictionary<String,String> GetDebugCommands()
         {
-            this.StopViewersUpdater();
-            this.ConnectionError?.Invoke(sender, e.Error.Message);
+            String[] strings = new[] 
+                { 
+                    "AccessTokenExpired",
+                    "OnTwitchClientDisconnected",
+                    "OnTwitchConnectionError",
+                    "GetRoomState"
+                };
+
+            return strings.ToDictionary(key => key, value => value);
+
         }
 
-        private void OnTwitchClientDisconnected(Object sender, OnDisconnectedEventArgs e)
+        public void RunDebugCommand(String parameter)
         {
-            this.StopViewersUpdater();
-            this.CurrentViewersCount = 0;
-            //this.Chatters.Clear();
-            //this.ChattersChanged?.Invoke(this, this.Chatters);
-            this.ViewersChanged?.Invoke(this, EventArgs.Empty);
-            this.Disconnected?.Invoke(sender, EventArgs.Empty);
+            TwitchPlugin.PluginLog.Info($"Debug run with {parameter}");
+            switch (parameter)
+            {
+                case  "AccessTokenExpired":
+                    this.OnTwitchAccessTokenExpired.BeginInvoke(this, EventArgs.Empty);
+                    break;
+                case "OnTwitchConnectionError":
+                {
+                    var e = new OnConnectionErrorArgs();
+                    e.Error.Message = "Syntetic!";
+                    this.OnTwitchConnectionError(this, e);
+                    break;
+                }
+                 
+                case "OnTwitchClientDisconnected":
+                {
+                    var e = new OnDisconnectedEventArgs();
+                    this.OnTwitchClientDisconnected(this, e);
+                    break;
+                }
+                case "GetRoomState":
+                {
+                    this._twitchClient.SendMessage(this._userInfo.Login, "ROOMSTATE");
+                    break;
+                }
+            }
         }
-
-        private void OnIncorrectLogin(Object sender, OnIncorrectLoginArgs e)
-        {
-            this.IncorrectLogin?.Invoke(sender, (e.Exception.Username, e.Exception));
-            this._twitchClient.Disconnect();
-        }
-
-        private void OnTwitchClientConnected(Object sender, OnConnectedArgs e)
-        {
-            // need to ensure that we only subscribe once
-            this.UpdateViewersAsync().ConfigureAwait(false);
-            this.InitViewersUpdater();
-            this.Connected?.Invoke(sender, e.BotUsername);
-        }
-
-        private void OnReconnected(Object sender, OnReconnectedEventArgs e)
-        {
-            // need to ensure that we only subscribe once
-            this.InitViewersUpdater();
-            this.Reconnected?.Invoke(sender, this._userInfo.Login);
-        }
-
-        private void OnError(Object sender, OnErrorEventArgs e)
-        {
-            this.Error?.Invoke(sender, e.Exception);
-        }
+#endif
 
     }
 }
