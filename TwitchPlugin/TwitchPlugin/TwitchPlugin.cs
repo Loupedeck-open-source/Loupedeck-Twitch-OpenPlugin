@@ -26,8 +26,10 @@
 
         public TwitchPlugin()
         {
-            if(TwitchPlugin.PluginLog == null) 
-                TwitchPlugin.PluginLog = this.Log; 
+            if (TwitchPlugin.PluginLog == null)
+            {
+                TwitchPlugin.PluginLog = this.Log;
+            }
 
             this._twitchAccount = new PluginPreferenceAccount("twitch-account")
             {
@@ -49,8 +51,8 @@
 
 
 
-            TwitchPlugin.Proxy.Connected += this.OnConnected;
-            TwitchPlugin.Proxy.Disconnected += this.OnDisconnected;
+            TwitchPlugin.Proxy.AppConnected += this.OnConnected;
+            TwitchPlugin.Proxy.AppDisconnected += this.OnDisconnected;
             TwitchPlugin.Proxy.TokensUpdated += this.OnTokensUpdated;
 
             TwitchPlugin.Proxy.ConnectionError += this.OnConnectionError;
@@ -69,8 +71,8 @@
 
         public override void Unload()
         {
-            TwitchPlugin.Proxy.Connected -= this.OnConnected;
-            TwitchPlugin.Proxy.Disconnected -= this.OnDisconnected;
+            TwitchPlugin.Proxy.AppConnected -= this.OnConnected;
+            TwitchPlugin.Proxy.AppDisconnected -= this.OnDisconnected;
             TwitchPlugin.Proxy.TokensUpdated -= this.OnTokensUpdated;
             TwitchPlugin.Proxy.ConnectionError -= this.OnConnectionError;
             TwitchPlugin.Proxy.Error -= this.OnError;
@@ -130,7 +132,7 @@
             }
         }
 
-        protected override bool TryGetActionImage(string actionName, string actionParameter, PluginImageSize imageSize,
+        protected override Boolean TryGetActionImage(String actionName, String actionParameter, PluginImageSize imageSize,
             out BitmapImage bitmap)
         {
             BitmapImage GetViewersBitmapWithText(String imageName, String buttonText, Int32 fontSize = 15, BitmapColor? color = null)
@@ -345,9 +347,9 @@
             this._twitchAccount.ReportLogin(args.UserName, this._twitchAccount.AccessToken, this._twitchAccount.RefreshToken);
         }
 
-        private void OnConnected(Object sender, String username)
+        private void OnConnected(Object sender, EventArgs e)
         {
-            TwitchPlugin.PluginLog.Info($"Connected to twitch client as {username}");
+            TwitchPlugin.PluginLog.Info($"Connected to twitch client");
 
             this.OnPluginStatusChanged(Loupedeck.PluginStatus.Normal, "Connected!");
         }
