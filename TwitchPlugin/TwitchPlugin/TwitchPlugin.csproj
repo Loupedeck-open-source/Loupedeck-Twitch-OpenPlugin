@@ -56,6 +56,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -69,6 +70,7 @@
     <None Include="Actions\ChatSlowModeToggleCmd.cs" />
     <Compile Include="Actions\GenericOnOffSwitch.cs" />
     <Compile Include="Actions\ChatEmoToggleCmd.cs" />
+    <Compile Include="Actions\InternalDebugCommand.cs" />
     <Compile Include="Authenticator\AuthenticationServer.cs" />
     <Compile Include="DisplayNameMaps.cs" />
     <Compile Include="Exceptions\InvalidAccessTokenException.cs" />
@@ -79,11 +81,13 @@
     </Compile>
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="Models\TwitchPluginConfig.cs" />
+    <Compile Include="Models\EventArgs.cs" />
     <Compile Include="Models\UserInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TwitchApplication.cs" />
     <Compile Include="TwitchPlugin.cs" />
     <Compile Include="TwitchWrapper\TwitchWrapper.Channel.cs" />
+    <Compile Include="TwitchWrapper\TwitchWrapper.Connectivity.cs" />
     <Compile Include="TwitchWrapper\TwitchWrapper.cs" />
     <None Include="TwitchWrapper\TwitchWrapper.Chatters.cs" />
     <Compile Include="TwitchWrapper\TwitchWrapper.Viewers.cs" />
