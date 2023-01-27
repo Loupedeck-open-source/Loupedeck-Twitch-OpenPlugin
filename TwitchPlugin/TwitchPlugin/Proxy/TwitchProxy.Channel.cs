@@ -193,7 +193,7 @@
                     //if string starts with the "already_", we remove it
                     if(tag.StartsWith(MsgAlready))
                     {
-                        tag.Remove(0,MsgAlready.Length);
+                        tag = tag.Remove(0,MsgAlready.Length);
                     }
                 }
             }
