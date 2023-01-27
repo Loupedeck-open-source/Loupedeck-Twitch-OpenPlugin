@@ -34,7 +34,11 @@
         public event EventHandler<EventArgs> AppEvtChatSlowModeOff;
 
         public void AppToggleEmotesOnly() => this.SendMessage(this.IsEmoteOnly ? ".emoteonlyoff" : ".emoteonly");
+        public void AppEmotesOnlyOn() => this.SendMessage(".emoteonly");
+        public void AppEmotesOnlyOff() => this.SendMessage(".emoteonlyff");
         public void AppToggleSubscribersOnly() => this.SendMessage(this.IsSubOnly ? ".subscribersoff" : ".subscribers");
+        public void AppSubscribersOnlyOn() => this.SendMessage(".subscribers");
+        public void AppSubscribersOnlyOff() => this.SendMessage(".subscribersoff");
         public void AppToggleFollowersOnly() => this.SendMessage(this.IsFollowersOnly ? ".followersoff" : ".followerson 10m");
         public void AppToggleSlowMode() => this.SendMessage(TwitchPlugin.Proxy.IsSlowMode ? ".slowoff" : ".slow 30");
 
@@ -98,11 +102,22 @@
         private void SetChannelFlags(OnChannelStateChangedArgs a)
         {
             ChannelState state = a?.ChannelState;
-
-              this.IsSubOnly = state?.SubOnly == true;
-              this.IsEmoteOnly = state?.EmoteOnly == true;
-              this.SlowMode = state?.SlowMode ?? 0;
-              this.FollowersOnly =  state?.FollowersOnly ?? TimeSpan.Zero;
+            if (state?.SubOnly != null)
+            {
+                this.IsSubOnly = state.SubOnly == true;
+            }
+            if (state?.EmoteOnly != null)
+            {
+                this.IsEmoteOnly = state?.EmoteOnly == true;
+            }
+            if (state?.SlowMode != null)
+            {
+                this.SlowMode = state?.SlowMode ?? 0;
+            }
+            if (state?.FollowersOnly != null)
+            {
+                this.FollowersOnly = state?.FollowersOnly ?? TimeSpan.Zero;
+            }
         }
        
         private void OnChannelStateChanged(Object sender, OnChannelStateChangedArgs e)
