@@ -86,11 +86,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TwitchApplication.cs" />
     <Compile Include="TwitchPlugin.cs" />
-    <Compile Include="Proxy\TwitchWrapper.Channel.cs" />
-    <Compile Include="Proxy\TwitchWrapper.Connectivity.cs" />
-    <Compile Include="Proxy\TwitchWrapper.cs" />
-    <None Include="Proxy\TwitchWrapper.Chatters.cs" />
-    <Compile Include="Proxy\TwitchWrapper.Viewers.cs" />
+    <Compile Include="Proxy\TwitchProxy.Channel.cs" />
+    <Compile Include="Proxy\TwitchProxy.Connectivity.cs" />
+    <Compile Include="Proxy\TwitchProxy.cs" />
+    <None Include="Proxy\TwitchProxy.Chatters.cs" />
+    <Compile Include="Proxy\TwitchProxy.Viewers.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Localization\Localization.resx">
