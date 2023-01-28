@@ -49,11 +49,14 @@ namespace Loupedeck.TwitchPlugin
         {
             this._refreshTokenTimer.Enabled = false;
 
+            var refreshIntervalMs = 1000 * (expiresIn > 30 ? (expiresIn - 20) : 10) * 0.6;
+
             //Say, 20 seconds before an actual expiration. 
-            this._refreshTokenTimer.Interval = 1000 *( expiresIn > 30 ? (expiresIn - 20) : 10);
+            this._refreshTokenTimer.Interval = refreshIntervalMs;
             this.RefreshToken = refreshToken;
-            TwitchPlugin.PluginLog.Info($"Refresh timer armed, interval {this._refreshTokenTimer.Interval/1000} s (now is {DateTime.Now.ToLocalTime()})");
             this._refreshTokenTimer.Enabled = true;
+
+            TwitchPlugin.PluginLog.Info($"Refresh timer interval {refreshIntervalMs}, expected to fire on {DateTime.Now.ToLocalTime().AddSeconds(refreshIntervalMs*1000)})");
         }
 
         private void OnRefreshTokenTimerTick(Object _, Object _1)
@@ -68,12 +71,11 @@ namespace Loupedeck.TwitchPlugin
             TwitchPlugin.PluginLog.Info("Starting authentication...");
             //Starting authentication process.  Once completed, OnAccessTokenReceived event is fired, and we can continue. On error, we will get OnAccessTokenError
             this._authServer.StartAuthtentication();
-//                TwitchPlugin.PluginLog.Error("Error starting authentication");
-                //This one should set plugin status to error
-//                this.ConnectionError?.Invoke(this, "Cannot Authenticate with Twitch service. Please restart Loupedeck and try again.");
+            //This one should set plugin status to error
+            //                this.ConnectionError?.Invoke(this, "Cannot Authenticate with Twitch service. Please restart Loupedeck and try again.");
         }
 
-         public static Boolean ValidateAccessToken(String token, out ValidateAccessTokenResponse response)
+        public static Boolean ValidateAccessToken(String token, out ValidateAccessTokenResponse response)
         {
             var success = Helpers.TryExecuteFunc(() => { return TwitchPlugin.Proxy.twitchApi.Auth.ValidateAccessTokenAsync(token).Result; }, out var resp);
             response = resp;
