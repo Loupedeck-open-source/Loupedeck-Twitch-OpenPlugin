@@ -22,12 +22,12 @@
         public UniversalStateSwitch()
         {
 
-            this.DisplayName = "Set OBS Toggle On/Off";
+            this.DisplayName = "Set Twitch Toggle On/Off";
             this.Description = "Sets a specific action toggle to go to a pre-defined state. This is particularly useful to ensure that a Toggle is set on or off in custom Multi-Action.";
             this.GroupName = "";
 
             this.ActionEditor.AddControl(
-                new ActionEditorListbox(name: ToggleActionSelector, labelText: "OBS toggle:"));
+                new ActionEditorListbox(name: ToggleActionSelector, labelText: "Twitch toggle:"));
             
             this.ActionEditor.AddControl(
                 new ActionEditorListbox(name: ToggleStateSelector, labelText: "Set to state:"));
