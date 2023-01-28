@@ -51,16 +51,30 @@
                 }
                 this.CurrentViewersCount = viewers;
             }
+            catch (AggregateException ae)
+            {
+                ae.Handle(e =>
+                {
+                    if (e is TokenExpiredException || e is BadScopeException)
+                    {
+                        //For whatever reason we might be those getting this first...
+                        TwitchPlugin.PluginLog.Error(e, $"OnViewersUpdateTimerTick Aggregate error: {e.Message}");
+                        this.OnTwitchAccessTokenExpired?.BeginInvoke(this, EventArgs.Empty);
+                        return true; // exception was handled
+                    }
+                    return false; // exception was not handled
+                });
+            }
             catch (Exception ex) when (ex is TokenExpiredException || ex is BadScopeException)
             {
                 //For whatever reason we might be those getting this first...
-                TwitchPlugin.PluginLog.Error(ex, $"OnViewersUpdateTimerTick error: {ex.Message}");
+                TwitchPlugin.PluginLog.Error(ex, $"OnViewersUpdateTimerTick expired error: {ex.Message}");
                 this.OnTwitchAccessTokenExpired?.BeginInvoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
                 //TODO: Figure out 
-                TwitchPlugin.PluginLog.Error(ex, $"OnViewersUpdateTimerTick error: {ex.Message}");
+                TwitchPlugin.PluginLog.Error(ex, $"OnViewersUpdateTimerTick unhandled error: {ex.Message}");
             }
         }
 
