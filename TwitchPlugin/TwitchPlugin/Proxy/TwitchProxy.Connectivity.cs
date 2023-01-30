@@ -4,6 +4,7 @@ namespace Loupedeck.TwitchPlugin
 
     using System;
     using System.Collections.Generic;
+
     using TwitchLib.Api.Auth;
     using TwitchLib.Client.Events;
     using TwitchLib.Client.Models;
@@ -36,8 +37,7 @@ namespace Loupedeck.TwitchPlugin
 
         private readonly AuthenticationServer _authServer;
 
-        public Boolean IsConnected => this._twitchClient.IsConnected == true;
-
+        public Boolean IsConnected => (this._twitchClient?.IsConnected ?? false) == true;
         
         public EventHandler<(String, Exception)> IncorrectLogin { get; set; }
         
@@ -56,7 +56,7 @@ namespace Loupedeck.TwitchPlugin
             this.RefreshToken = refreshToken;
             this._refreshTokenTimer.Enabled = true;
 
-            TwitchPlugin.PluginLog.Info($"Refresh timer interval {refreshIntervalMs}, expected to fire on {DateTime.Now.ToLocalTime().AddSeconds(refreshIntervalMs*1000)})");
+            TwitchPlugin.PluginLog.Info($"Refresh timer interval {refreshIntervalMs/1000}s, expected to fire on {DateTime.Now.ToLocalTime().AddSeconds(refreshIntervalMs/1000)})");
         }
 
         private void OnRefreshTokenTimerTick(Object _, Object _1)
@@ -106,18 +106,22 @@ namespace Loupedeck.TwitchPlugin
                 this.Disconnect(); 
             }
 
+            if(this._twitchClient == null)
+            {
+                this.InitializeTwitchClient();
+            }
+
             this._userInfo = new UserInfo(arg.UserId, arg.Login);
 
             //Received access token! Can proceed with connecting
             this.twitchApi.Settings.AccessToken = arg.AccessToken;
 
-            //TODO Set up reconnecting timer so that we refresh token before it expires
             //Storing refresh token. We will store that and this.twitchApi.Settings.AccessToken to account upon succesful connection 
             this.SetRefreshToken(arg.RefreshToken, arg.ExpiresIn);
 
             //Updating plugin so that tokens will be stored
             this.TokensUpdated?.Invoke(sender, new TokensUpdatedEventArg(this._userInfo.Login, this.twitchApi.Settings.AccessToken, this.RefreshToken));
-            
+
             //Note: We need to verify situation when DoConnect fails but authentication succeeds \
             if (Helpers.TryExecuteFunc(() => { return this.DoConnect(); }, out var connResult) && connResult)
             {
@@ -128,6 +132,7 @@ namespace Loupedeck.TwitchPlugin
                     this.OnTwitchIncorrectLogin
                     this.OnTwitchConnectionError
                 */
+
                 TwitchPlugin.PluginLog.Info("Connected successfully");
             }
             else
@@ -139,10 +144,6 @@ namespace Loupedeck.TwitchPlugin
         private void OnTwitchClientConnected(Object sender, OnConnectedArgs e)
         {
             TwitchPlugin.PluginLog.Info($"Twitch client connected");
-            //this.UpdateViewersAsync().ConfigureAwait(false);
-            //this.InitViewersUpdater();
-         
-
             this.AppConnected?.Invoke(sender, null);
         }
 
@@ -163,11 +164,12 @@ namespace Loupedeck.TwitchPlugin
 
         private Boolean DoConnect()
         {
-            TwitchPlugin.PluginLog.Info("TwitchWrapper Connect");
+            TwitchPlugin.PluginLog.Info("TwitchPlugin Connect");
 
             this._twitchClient.Initialize(
-                    new ConnectionCredentials(this._userInfo.Login, this.twitchApi.Settings.AccessToken),
-                    this._userInfo.Login);
+                    credentials: new ConnectionCredentials(this._userInfo.Login, this.twitchApi.Settings.AccessToken),
+                    channel:this._userInfo.Login/*,
+                    autoReListenOnExceptions:false */);
 
             if (!this._twitchClient.Connect())
             {
@@ -186,7 +188,7 @@ namespace Loupedeck.TwitchPlugin
         
         public void Disconnect()
         {
-            TwitchPlugin.PluginLog.Info("TwitchWrapper Disconnect");
+            TwitchPlugin.PluginLog.Info("TwitchPlugin Disconnect");
 
             try
             {
@@ -200,20 +202,12 @@ namespace Loupedeck.TwitchPlugin
                     return;
                 }
 
-                //this.StopViewersUpdater();
-
-                this._twitchClient.Disconnect();
-                //this._twitchClient.Dispose()
-                //this.CurrentViewersCount = 0;
-
-                //this.Chatters.Clear();
-                //this.ChattersChanged?.Invoke(this, this.Chatters);
-
-                //this.ViewersChanged?.Invoke(this, EventArgs.Empty);
+                this.DisposeTwitchClient();
+                
             }
             catch (Exception e)
             {
-                TwitchPlugin.PluginLog.Error(e, $"TwitchWrapper Disconnect error: {e.Message}");
+                TwitchPlugin.PluginLog.Error(e, $"TwitchPlugin Disconnect error: {e.Message}");
                 throw;
             }
         }
@@ -221,7 +215,6 @@ namespace Loupedeck.TwitchPlugin
         private void OnTwitchConnectionError(Object sender, OnConnectionErrorArgs e)
         {
             TwitchPlugin.PluginLog.Warning($"OnTwitchConnectionError: {e.Error.Message}");
-            //this.StopViewersUpdater();
 
             this.ConnectionError?.Invoke(sender, e.Error.Message);
         }
@@ -234,23 +227,21 @@ namespace Loupedeck.TwitchPlugin
 
             TwitchPlugin.PluginLog.Warning($"OnTwitchClientDisconnected");
 
-            //this.StopViewersUpdater();
-            //this.CurrentViewersCount = 0;
-            //this.Chatters.Clear();
-            //this.ChattersChanged?.Invoke(this, this.Chatters);
-            //this.ViewersChanged?.Invoke(this, EventArgs.Empty);
-
             this.AppDisconnected?.Invoke(sender, EventArgs.Empty);
         }
-        
+
         private void OnTwitchIncorrectLogin(Object sender, OnIncorrectLoginArgs e)
         {
-            //We receive that, in particular when access token expires. 
+            //ASSUMING we are now handling token expiration correctly, IncorrectLogin
+            //means we must re-login manually  (whether oauth was revoked or password changed)
 
-            //Something horribly wrong happened, disconnecting alltogether
-            this.Disconnect();
+            // NOTE: DISCONNECT IS NOT WORKING, See reference to TwitchLib bug this.Disconnect();
+            //Hence we will need to KILL twitch clientt
+            this.DisconnectAndKillTwitchClient();
+
             this.IncorrectLogin?.Invoke(sender, (e.Exception.Username, e.Exception));
         }
+
 
         private Boolean _refreshAccessTokenRequestBlocked = false;
 
@@ -258,6 +249,19 @@ namespace Loupedeck.TwitchPlugin
         {
             TwitchPlugin.PluginLog.Info("TwitchPlugin OnAccessTokenExpired");
             this.RequestRefreshAccessToken(this.RefreshToken);
+        }
+
+        private void DisconnectAndKillTwitchClient()
+        {
+            // As a (hopefully) temporary solution to an issue in TwitchLib  https://github.com/TwitchLib/TwitchLib/issues/1104
+            // we need to kill client instead of disconnecting  (because reconnection kicks in)
+            // There is some risk for that operation to run sync 
+            TwitchPlugin.PluginLog.Info("Disconnecting and killing twitch client!");
+            //Informing others we're going down
+            
+            this.AppDisconnected?.BeginInvoke(this, EventArgs.Empty);
+            this.DisposeTwitchClient();
+            this._twitchClient = null;
         }
 
         private void RequestRefreshAccessToken(String inRefreshToken=null)
@@ -282,19 +286,23 @@ namespace Loupedeck.TwitchPlugin
                 {
                     TwitchPlugin.PluginLog.Info($"Tokens refreshed successfully, new token expires in {result.ExpiresIn}s or {result.ExpiresIn/60}min ");
 
-
                     this.twitchApi.Settings.AccessToken = result.AccessToken;
 
-                    //We need to reconnect TwitchClient with new access token
-                    if (!this.IsConnected)
-                    {
-                        TwitchPlugin.PluginLog.Info("Actually connecting, as Client was disconnected.");
-                        this._twitchClient.Connect();
-                    }
-                    else
-                    {
-                        this._twitchClient.Reconnect();
-                    }
+
+                    //See above the note about reconnection bug
+                    /*this.DisconnectAndKillTwitchClient();
+                        TwitchPlugin.PluginLog.Info("Phoneix rises from the ashes!");
+                        this.InitializeTwitchClient();
+                        this.DoConnect();
+                    */
+
+                    this._twitchClient.Initialize(
+                        credentials: new ConnectionCredentials(this._userInfo.Login, this.twitchApi.Settings.AccessToken),
+                        channel: this._userInfo.Login/*,
+                        autoReListenOnExceptions:false */);
+
+                    this._twitchClient.Reconnect();
+
 
                     this.SetRefreshToken(result.RefreshToken, result.ExpiresIn);
                     //Note that in Refresh response we naturally don't receive userid/login - we use the same as before. 
