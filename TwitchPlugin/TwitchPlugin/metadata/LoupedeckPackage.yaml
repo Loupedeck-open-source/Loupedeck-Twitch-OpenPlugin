@@ -15,7 +15,7 @@ displayName: Twitch
 pluginFileName: TwitchPlugin.dll
 
 # Plugin version.
-version: 5.4.2.20000
+version: 5.5.0.20000
 
 # Author of the plugin. The author can be a company or an individual developer.
 author: Andrei Laperie, Loupedeck
