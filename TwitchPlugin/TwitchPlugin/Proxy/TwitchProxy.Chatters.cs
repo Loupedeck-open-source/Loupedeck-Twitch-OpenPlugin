@@ -7,7 +7,7 @@ namespace Loupedeck.TwitchPlugin
     using TwitchLib.Api.Core.Models.Undocumented.Chatters;
     using TwitchLib.Client.Events;
 
-    public partial class TwitchWrapper : IDisposable
+    public partial class TwitchPlugin : IDisposable
     {
         public EventHandler<HashSet<String>> ChattersChanged { get; set; }
 
