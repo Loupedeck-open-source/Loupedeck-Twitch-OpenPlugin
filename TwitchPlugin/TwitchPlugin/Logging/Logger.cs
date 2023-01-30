@@ -2,6 +2,7 @@
 {
     using Microsoft.Extensions.Logging;
     using System;
+    using System.ComponentModel;
 
     public class TwitchPluginLoggerFactory : ILoggerFactory
     {
@@ -20,28 +21,22 @@
 
     public class TwitchPluginLogger : ILogger
     {
-        private readonly string _categoryName;
+        private readonly String _categoryName;
+        private static UInt32 _intstance_id = 0;
+        private UInt32 _thisLoggerId = TwitchPluginLogger._intstance_id++;
+        public TwitchPluginLogger(String categoryName) => this._categoryName = categoryName;
 
-        public TwitchPluginLogger(string categoryName)
-        {
-            _categoryName = categoryName;
-        }
-
-        public IDisposable BeginScope<TState>(TState state)
-        {
+        public IDisposable BeginScope<TState>(TState state) =>
             // Create a new scope
-            return null;
-        }
+            null;
 
-        public bool IsEnabled(LogLevel logLevel)
-        {
+        public Boolean IsEnabled(LogLevel logLevel) =>
             // Check if the log level is enabled
-            return true;
-        }
+            true;
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, String> formatter)
         {
-            var message = formatter(state, exception);
+            var message = $"{this._thisLoggerId}:" + formatter(state, exception);
 
             switch (logLevel)
             {
