@@ -78,10 +78,19 @@
             }
         }
 
-        private void StartViewersUpdateTimer(Object sender, TwitchLib.Client.Events.OnConnectedArgs e) =>
+        private void StartViewersUpdateTimer(Object sender, TwitchLib.Client.Events.OnConnectedArgs e)
+        {
             //We're connected
+            TwitchPlugin.PluginLog.Info($"Enabling Viewers update timer");
             this._viewersUpdatetimer.Enabled = true;
+        }
+            
 
-        private void StopViewersUpdateTimer(Object sender, OnDisconnectedEventArgs e) => this._viewersUpdatetimer.Enabled = false;
+        private void StopViewersUpdateTimer(Object sender, OnDisconnectedEventArgs e)
+        {
+            TwitchPlugin.PluginLog.Info($"Disabling Viewers update timer");
+            this._viewersUpdatetimer.Enabled = true;
+        }
+        
     }
 }
