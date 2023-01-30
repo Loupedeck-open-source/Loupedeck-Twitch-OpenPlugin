@@ -89,9 +89,14 @@
         //Ensures that we have joined own channel and, if not, joins channel and optionally runs the callback
         private void EnsureOnOwnChannel(Action callback = null)
         {
+            if( this._twitchClient == null || !this.IsConnected)
+            {
+                return;
+            }
+
             if (this._twitchClient.JoinedChannels.All(c => !c.Channel.Equals(this._userInfo.Login)))
             {
-                this.JoinChannel(this._userInfo.Login,callback);
+               this.JoinChannel(this._userInfo.Login,callback);
             }
             else
             {
@@ -177,6 +182,8 @@
             }
 
             this._twitchClient.OnChannelStateChanged += ChannelJoined;
+
+            TwitchPlugin.PluginLog.Info($"Joining channel {channel}");
             this._twitchClient.JoinChannel(channel);
         }
 
