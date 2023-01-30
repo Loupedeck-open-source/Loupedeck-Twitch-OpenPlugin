@@ -9,7 +9,11 @@
     using TwitchLib.Api.Core.Exceptions;
     using TwitchLib.Client;
     using TwitchLib.Client.Events;
+    using TwitchLib.Client.Interfaces;
+    using TwitchLib.Communication.Clients;
     using TwitchLib.Communication.Events;
+    using TwitchLib.Communication.Interfaces;
+    using TwitchLib.Communication.Models;
 
     /*
      NOTES ON CONNECTION LOGIC
@@ -36,16 +40,22 @@
 
         public EventHandler<Exception> Error { get; set; }
 
-        private TwitchClient _twitchClient;
-
         private UserInfo _userInfo;
 
         private readonly TwitchPluginLoggerFactory _loggerFactory = new TwitchPluginLoggerFactory();
-
         
+        private IClient _webSocketClient;
+        private TwitchClient _twitchClient;
+
         private void InitializeTwitchClient()
         {
-            this._twitchClient = new TwitchClient(logger: this._loggerFactory.CreateLogger<TwitchLib.Client.TwitchClient>());
+            //Using workaround for continuous reconnection from here:
+            // https://github.com/TwitchLib/TwitchLib.Client/issues/206#issuecomment-1407447681
+            IClientOptions options = new ClientOptions();
+
+            this._webSocketClient = new WebSocketClient(options);
+            this._twitchClient = new TwitchClient(client: this._webSocketClient, 
+                logger: this._loggerFactory.CreateLogger<TwitchLib.Client.TwitchClient>());
 
             this._twitchClient.OnConnected += this.OnTwitchClientConnected;
             this._twitchClient.OnDisconnected += this.OnTwitchClientDisconnected;
@@ -77,7 +87,6 @@
             {
                 return;
             }
-              
 
             this._twitchClient.OnConnected -= this.OnTwitchClientConnected;
             this._twitchClient.OnDisconnected -= this.OnTwitchClientDisconnected;
@@ -98,8 +107,13 @@
             this._twitchClient.OnIncorrectLogin -= this.OnTwitchIncorrectLogin;
             this._twitchClient.OnConnectionError -= this.OnTwitchConnectionError;
             this._twitchClient.OnError -= this.OnError;
-        }
 
+            this._webSocketClient.Close();
+            this._twitchClient.Disconnect();
+            this._webSocketClient.Dispose();
+            this._webSocketClient = null;
+            this._twitchClient = null;
+        }
 
         public TwitchProxy()
         {
@@ -110,7 +124,6 @@
                 SkipAutoServerTokenGeneration = true,
                 SkipDynamicScopeValidation = true
             });
-
 
             this.OnTwitchAccessTokenExpired += this.OnAccessTokenExpired;
 
