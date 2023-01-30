@@ -49,7 +49,7 @@ namespace Loupedeck.TwitchPlugin
         {
             this._refreshTokenTimer.Enabled = false;
 
-            var refreshIntervalMs = 1000 * (expiresIn > 30 ? (expiresIn - 20) : 10) * 0.6;
+            var refreshIntervalMs = 1000 * (expiresIn > 180 ? (expiresIn - 180) : 180);
 
             //Say, 20 seconds before an actual expiration. 
             this._refreshTokenTimer.Interval = refreshIntervalMs;
@@ -89,8 +89,7 @@ namespace Loupedeck.TwitchPlugin
 
         public void PreconfiguredConnect(PluginPreferenceAccount account,ValidateAccessTokenResponse validate) => 
             this.OnAccessTokenReceived(this, new AccessTokenReceivedEventArgs(account.AccessToken, account.RefreshToken, validate));
-        
-
+       
         private void OnAccessTokenReceived(Object sender, AccessTokenReceivedEventArgs arg )
         {
             TwitchPlugin.PluginLog.Info("Access token received");
@@ -132,7 +131,6 @@ namespace Loupedeck.TwitchPlugin
                     this.OnTwitchIncorrectLogin
                     this.OnTwitchConnectionError
                 */
-
                 TwitchPlugin.PluginLog.Info("Connected successfully");
             }
             else
@@ -153,7 +151,6 @@ namespace Loupedeck.TwitchPlugin
             this.OnTwitchClientConnected(sender, null);
         }
         
-
         private void OnAccessTokenError(Object sender, AccessTokenErrorEventArgs arg)
         {
             //ERROR WITH ACCESS TOKEN.  We should logout and tell user
@@ -203,7 +200,6 @@ namespace Loupedeck.TwitchPlugin
                 }
 
                 this.DisposeTwitchClient();
-                
             }
             catch (Exception e)
             {
@@ -218,7 +214,6 @@ namespace Loupedeck.TwitchPlugin
 
             this.ConnectionError?.Invoke(sender, e.Error.Message);
         }
-
 
         private void OnTwitchClientDisconnected(Object sender, OnDisconnectedEventArgs e)
         {
@@ -242,7 +237,6 @@ namespace Loupedeck.TwitchPlugin
             this.IncorrectLogin?.Invoke(sender, (e.Exception.Username, e.Exception));
         }
 
-
         private Boolean _refreshAccessTokenRequestBlocked = false;
 
         private void OnAccessTokenExpired(Object sender, EventArgs e)
@@ -261,7 +255,6 @@ namespace Loupedeck.TwitchPlugin
             
             this.AppDisconnected?.BeginInvoke(this, EventArgs.Empty);
             this.DisposeTwitchClient();
-            this._twitchClient = null;
         }
 
         private void RequestRefreshAccessToken(String inRefreshToken=null)
@@ -290,19 +283,18 @@ namespace Loupedeck.TwitchPlugin
 
 
                     //See above the note about reconnection bug
-                    /*this.DisconnectAndKillTwitchClient();
-                        TwitchPlugin.PluginLog.Info("Phoneix rises from the ashes!");
-                        this.InitializeTwitchClient();
-                        this.DoConnect();
-                    */
-
+                    this.DisconnectAndKillTwitchClient();
+                    TwitchPlugin.PluginLog.Info("Phoneix rises from the ashes!");
+                    this.InitializeTwitchClient();
+                    this.DoConnect();
+                    
+                    /*
                     this._twitchClient.Initialize(
                         credentials: new ConnectionCredentials(this._userInfo.Login, this.twitchApi.Settings.AccessToken),
-                        channel: this._userInfo.Login/*,
-                        autoReListenOnExceptions:false */);
+                        channel: this._userInfo.Login);
 
                     this._twitchClient.Reconnect();
-
+                    */
 
                     this.SetRefreshToken(result.RefreshToken, result.ExpiresIn);
                     //Note that in Refresh response we naturally don't receive userid/login - we use the same as before. 
