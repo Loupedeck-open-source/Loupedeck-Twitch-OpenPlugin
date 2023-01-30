@@ -323,15 +323,17 @@
         private void OnDisconnected(Object sender, EventArgs e)
         {
             TwitchPlugin.PluginLog.Info("OnDisconnected");
+            //Note that, except for the Forced logout and closing te application 
+            //User never disconnects from Twitch. 
         }
 
         private void OnIncorrectLogin(Object sender, (String, Exception) e)
         {
             var (_, ex) = e;
+
             TwitchPlugin.PluginLog.Warning(ex,$"Incorrect Login: {ex.Message}");
-
-            //FIXME: Should we set plugin status here? 
-
+            
+            // Incorrect login happens when we are re-authenticating. Let's ignore it for now
             this._twitchAccount.ReportLogout();
         }
 
