@@ -1,6 +1,7 @@
 [submodule "TwitchPlugin/TwitchLib/TwitchLib.Client"]
 	path = TwitchPlugin/TwitchLib/TwitchLib.Client
-	url = git@github.com:TwitchLib/TwitchLib.Client.git
+	url = git@github.com:laperie/TwitchLib.Client.git
+	branch = Issue207-OnChannelStateChanged
 [submodule "TwitchPlugin/TwitchLib/TwitchLib.Api"]
 	path = TwitchPlugin/TwitchLib/TwitchLib.Api
 	url = git@github.com:TwitchLib/TwitchLib.Api.git
