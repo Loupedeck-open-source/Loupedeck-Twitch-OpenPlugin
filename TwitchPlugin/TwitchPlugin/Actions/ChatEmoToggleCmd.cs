@@ -12,8 +12,8 @@
                             groupName: "",
                             onStateName: "Emotes-Only chat is On",
                             offStateName: "Emotes-Only chat is Off",
-                            onStateImage: "TwitchEmoteChat.png",
-                            offStateImage: "TwitchEmoteChatToggle.png")
+                            offStateImage: "TwitchEmoteChat.png",
+                            onStateImage: "TwitchEmoteChatToggle.png")
         {
         }
 
