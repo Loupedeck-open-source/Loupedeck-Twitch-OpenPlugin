@@ -3,6 +3,12 @@
     using System;
     using TwitchLib.Api.Auth;
 
+    public class TimeSpanEventArg : EventArgs
+    {
+        public Int32 SlowModeRange { get; private set; }
+        public TimeSpanEventArg(Int32 seconds) => this.SlowModeRange = seconds;
+    }
+
     public class AccessTokenReceivedEventArgs : EventArgs
     {
         public String AccessToken { get; private set; }
