@@ -44,19 +44,20 @@ namespace Loupedeck.TwitchPlugin
         private String RefreshToken { get; set; } = null;
 
         private readonly System.Timers.Timer _refreshTokenTimer = null; 
+        
+
+        private const Int32 WakeupBeforeExpirationS = 1800; /*Wake up seconds before expiration timer*/
 
         private void SetRefreshToken(String refreshToken,Int32 expiresIn)
         {
             this._refreshTokenTimer.Enabled = false;
 
-            var refreshIntervalMs = 1000 * (expiresIn > 180 ? (expiresIn - 180) : 180);
-
             //Say, 20 seconds before an actual expiration. 
-            this._refreshTokenTimer.Interval = refreshIntervalMs;
+            this._refreshTokenTimer.Interval = 1000 * (expiresIn > WakeupBeforeExpirationS ? (expiresIn - WakeupBeforeExpirationS) : WakeupBeforeExpirationS);
             this.RefreshToken = refreshToken;
             this._refreshTokenTimer.Enabled = true;
 
-            TwitchPlugin.PluginLog.Info($"Refresh timer interval {refreshIntervalMs/1000}s, expected to fire on {DateTime.Now.ToLocalTime().AddSeconds(refreshIntervalMs/1000)})");
+            TwitchPlugin.PluginLog.Info($"Refresh timer enabled: {this._refreshTokenTimer.Enabled} interval {this._refreshTokenTimer.Interval/ 1000}s, expected to fire on {DateTime.Now.ToLocalTime().AddSeconds(this._refreshTokenTimer.Interval / 1000)})");
         }
 
         private void OnRefreshTokenTimerTick(Object _, Object _1)
