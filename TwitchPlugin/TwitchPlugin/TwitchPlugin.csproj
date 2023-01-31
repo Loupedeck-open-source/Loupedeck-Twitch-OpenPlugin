@@ -66,9 +66,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Actions\UniversalStateSwitch.cs" />
-    <None Include="Actions\ChatFlwOnlyToggleCmd.cs" />
+    <Compile Include="Actions\ChatFollowersCommand.cs" />
     <Compile Include="Actions\ChatSubToggleCmd.cs" />
-    <None Include="Actions\ChatSlowModeToggleCmd.cs" />
+    <Compile Include="Actions\ChatSlowModeCommand.cs" />
     <Compile Include="Actions\GenericOnOffSwitch.cs" />
     <Compile Include="Actions\ChatEmoToggleCmd.cs" />
     <Compile Include="Actions\InternalDebugCommand.cs" />
