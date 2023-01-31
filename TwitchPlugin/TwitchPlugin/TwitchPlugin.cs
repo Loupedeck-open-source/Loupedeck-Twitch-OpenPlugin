@@ -487,7 +487,52 @@
             }
         }
         internal const String ImageResPrefix = "Loupedeck.TwitchPlugin.Icons._80x80.";
-        public static void Trace(String line) => TwitchPlugin.PluginLog.Info("TW:" + line); 
+
+        public static void Trace(String line) => TwitchPlugin.PluginLog.Info("TW:" + line);
+
+        private static readonly BitmapColor BitmapColorPink = new BitmapColor(255, 192, 203);
+
+        internal BitmapBuilder BuildImage(PluginImageSize imageSize, String imageName, String text, Boolean selected)
+        {
+            var bitmapBuilder = new BitmapBuilder(imageSize);
+            try
+            {
+
+                var image = EmbeddedResources.ReadImage(imageName);
+                bitmapBuilder.DrawImage(image);
+            }
+            catch (Exception ex)
+            {
+                this.Log.Error($"Cannot load image {imageName}, exception {ex}");
+            }
+
+            if (!String.IsNullOrEmpty(text))
+            {
+                var x1 = bitmapBuilder.Width * 0.1;
+                var w = bitmapBuilder.Width * 0.8;
+                var y1 = bitmapBuilder.Height * 0.60;
+                var h = bitmapBuilder.Height * 0.3;
+
+                bitmapBuilder.DrawText(text, (Int32)x1, (Int32)y1, (Int32)w, (Int32)h,
+                                            selected ? BitmapColor.Black : BitmapColorPink,
+                                            imageSize == PluginImageSize.Width90 ? 13 : 9,
+                                            imageSize == PluginImageSize.Width90 ? 12 : 8, 1);
+            }
+
+            return bitmapBuilder;
+        }
+        
+        /// <summary>
+        ///  Draws text over the bitmap. Bad location but in absence of the better components, put it here.
+        /// </summary>
+        /// <param name="imageSize">size of the image</param>
+        /// <param name="imagePath">Image file name</param>
+        /// <param name="text">text to render</param>
+        /// <param name="textSelected">If true, darker color of text is chosen</param>
+        /// <returns>bitmap with text rendered</returns>
+        internal BitmapImage GetPluginCommandImage(PluginImageSize imageSize, String imagePath, String text = null, Boolean textSelected = false) =>
+            this.BuildImage(imageSize, ImageResPrefix + imagePath, text, textSelected).ToImage();
+
 
     }
 }
