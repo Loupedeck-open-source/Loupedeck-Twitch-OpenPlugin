@@ -1,2 +1,16 @@
-# Loupedeck-Twitch-OpenPlugin
-Loupedeck Twitch Plugin
+# Loupedeck Twitch plugin
+Adds Twitch support to Loupedeck (5.4+)
+
+This is the repository for Twitch open source plugin for [Loupedeck](https://loupedeck.com).
+
+## How to contribute:
+- Send pull requests. These will be reviewed by project maintainers when there's time available.
+- Send issues  (please include logs, see [Loupedeck support article](https://support.loupedeck.com/loupedeck-logs-collection) for it)
+- Loupedeck will build plugin version updates and make them available in Loupedeck Marketplace
+
+## How to communicate:
+- Join [Loupedek Developer Discord](https://discord.gg/etJCPZytHg)
+- Documentation for [Loupedeck SDK](https://github.com/Loupedeck/PluginSdk/wiki)
+
+## Notes:
+This is a pre-release version. 
