@@ -10,16 +10,21 @@
     using System.Runtime.CompilerServices;
     using System.Collections.Generic;
     using System.Net.Http.Headers;
+    using TwitchLib.Client.Extensions;
+    using TwitchLib.Communication.Interfaces;
 
     public partial class TwitchProxy : IDisposable
     {
         public EventHandler ChannelStatusChanged { get; set; }
-        public Boolean IsSubOnly { get; private set; }
-        public Boolean IsEmoteOnly { get; private set; }
-        public Int32 SlowMode { get; private set; }
-        public TimeSpan FollowersOnly { get; private set; }
+        public Boolean IsSubOnly { get; private set; } = false;
+        public Boolean IsEmoteOnly { get; private set; } = false;
+        public Int32 SlowMode { get; private set; } = 0;
+
+        public static TimeSpan FollowersModeOff = TimeSpan.MinValue;
+
+        public TimeSpan FollowersOnly { get; private set; } = TwitchProxy.FollowersModeOff;
         public Boolean IsSlowMode => this.SlowMode != 0;
-        public Boolean IsFollowersOnly => this.FollowersOnly != TimeSpan.Zero;
+        public Boolean IsFollowersOnly => this.FollowersOnly != TwitchProxy.FollowersModeOff;
 
         public event EventHandler<EventArgs> AppEvtChatEmotesOnlyOn;
         public event EventHandler<EventArgs> AppEvtChatEmotesOnlyOff;
@@ -27,20 +32,45 @@
         public event EventHandler<EventArgs> AppEvtChatSubscribersOnlyOn;
         public event EventHandler<EventArgs> AppEvtChatSubscribersOnlyOff;
 
-        public event EventHandler<EventArgs> AppEvtChatFollowersOnlyOn;
-        public event EventHandler<EventArgs> AppEvtChatFollowersOnlyOff;
-
-        public event EventHandler<EventArgs> AppEvtChatSlowModeOn;
+        public event EventHandler<TimeSpanEventArg> AppEvtChatSlowModeOn;
         public event EventHandler<EventArgs> AppEvtChatSlowModeOff;
+
+        public event EventHandler<TimeSpanEventArg> AppEvtChatFollowersOnlyOn;
+        public event EventHandler<EventArgs> AppEvtChatFollowersOnlyOff;
 
         public void AppToggleEmotesOnly() => this.SendMessage(this.IsEmoteOnly ? ".emoteonlyoff" : ".emoteonly");
         public void AppEmotesOnlyOn() => this.SendMessage(".emoteonly");
         public void AppEmotesOnlyOff() => this.SendMessage(".emoteonlyff");
         public void AppToggleSubscribersOnly() => this.SendMessage(this.IsSubOnly ? ".subscribersoff" : ".subscribers");
         public void AppSubscribersOnlyOn() => this.SendMessage(".subscribers");
+
         public void AppSubscribersOnlyOff() => this.SendMessage(".subscribersoff");
-        public void AppToggleFollowersOnly() => this.SendMessage(this.IsFollowersOnly ? ".followersoff" : ".followerson 10m");
-        public void AppToggleSlowMode() => this.SendMessage(TwitchPlugin.Proxy.IsSlowMode ? ".slowoff" : ".slow 30");
+
+        public JoinedChannel GetOwnChannel() => this._twitchClient.GetJoinedChannel(this._userInfo.Login);
+
+        public void AppToggleFollowersOnly(Int32 duration = 0)
+        {
+            if (this.IsFollowersOnly || duration == 0)
+            {
+                FollowersOnlyExt.FollowersOnlyOff(this._twitchClient, this.GetOwnChannel());
+            }
+            else
+            {
+                FollowersOnlyExt.FollowersOnlyOn(this._twitchClient, this.GetOwnChannel(), TimeSpan.FromSeconds(duration));
+            }
+        }
+
+        public void AppToggleSlowMode(Int32 duration = 0)
+        {
+            if(this.IsSlowMode || duration == 0)
+            {
+                SlowModeExt.SlowModeOff(this._twitchClient, this.GetOwnChannel());
+            }
+            else
+            {
+                SlowModeExt.SlowModeOn(this._twitchClient, this.GetOwnChannel(), TimeSpan.FromSeconds(duration));
+            }
+        }
 
         public void CreateMarkerCommand()
         {
@@ -119,25 +149,26 @@
             {
                 this.SlowMode = state?.SlowMode ?? 0;
             }
+            //var chatSettings = twitchApi.Chat.GetChatSettingsAsync("CHANNEL_NAME").Result;
             if (state?.FollowersOnly != null)
             {
-                this.FollowersOnly = state?.FollowersOnly ?? TimeSpan.Zero;
+                this.FollowersOnly = state?.FollowersOnly ?? TwitchProxy.FollowersModeOff;
             }
         }
        
         private void OnChannelStateChanged(Object sender, OnChannelStateChangedArgs e)
         {
-            void ConditionallyFireEvent(Boolean changed, Boolean condition, EventHandler<EventArgs> ChangedToTrueEvent, EventHandler<EventArgs> changedToFalseEvent)
+            void ConditionallyFireEvent(Boolean changed, Boolean condition, EventHandler<EventArgs> ChangedToTrueEvent, EventHandler<EventArgs> changedToFalseEvent,EventArgs ChangedToTrueEventArg=null)
             {
                 if (changed)
                 {
                     if (condition)
                     {
-                        ChangedToTrueEvent?.Invoke(this, e);
+                        ChangedToTrueEvent?.Invoke(this, ChangedToTrueEventArg ?? e);
                     }
                     else
                     {
-                        changedToFalseEvent?.Invoke(this, e);
+                        changedToFalseEvent?.Invoke(this, ChangedToTrueEventArg ?? e);
                     }
                 }
             }
@@ -146,6 +177,8 @@
             {
                 return;
             }
+
+            TwitchPlugin.PluginLog.Info($"Channel state changed {e.ChannelState.ToString()}");
 
             this.EnsureOnOwnChannel(()=>
             {
@@ -159,8 +192,32 @@
                 ConditionallyFireEvent(this.IsEmoteOnly != prev_emote, this.IsEmoteOnly, this.AppEvtChatEmotesOnlyOn, this.AppEvtChatEmotesOnlyOff);
                 ConditionallyFireEvent(this.IsSubOnly != prev_sub, this.IsSubOnly, this.AppEvtChatSubscribersOnlyOn, this.AppEvtChatSubscribersOnlyOff);
 
-                ConditionallyFireEvent(this.FollowersOnly != prev_follow, this.IsFollowersOnly, this.AppEvtChatFollowersOnlyOn, this.AppEvtChatFollowersOnlyOff);
-                ConditionallyFireEvent(this.SlowMode != prev_slow, this.IsSlowMode, this.AppEvtChatSlowModeOn, this.AppEvtChatSlowModeOff);
+
+                if (this.FollowersOnly != prev_follow)
+                {
+                    if (this.IsFollowersOnly)
+                    {
+                        var arg = new TimeSpanEventArg((Int32)this.FollowersOnly.TotalSeconds);
+                        this.AppEvtChatFollowersOnlyOn?.Invoke(this, arg);
+                    }
+                    else
+                    {
+                        this.AppEvtChatFollowersOnlyOff?.Invoke(this, e);
+                    }
+                }
+
+                if (this.SlowMode != prev_slow)
+                {
+                    if (this.IsSlowMode)
+                    {
+                        var arg = new TimeSpanEventArg(this.SlowMode);
+                        this.AppEvtChatSlowModeOn?.Invoke(this, arg);
+                    }
+                    else
+                    {
+                        this.AppEvtChatSlowModeOff?.Invoke(this, e);
+                    }
+                }
 
                 this.ChannelStatusChanged?.Invoke(this, EventArgs.Empty);
             });
