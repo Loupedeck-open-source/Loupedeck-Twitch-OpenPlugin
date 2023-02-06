@@ -6,8 +6,8 @@
     {
         public ChatSubToggleCmd()
                         : base(
-                            name: "ToggleSubscribersOnly1",
-                            displayName: "(new) Chat Subscribers-Only",
+                            name: "ToggleSubsOnly",
+                            displayName: "Chat Subscribers-Only",
                             description: "Toggles chat Subscribers-only mode",
                             groupName: "",
                             onStateName: "Subscribers-Only chat is On",
