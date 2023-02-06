@@ -4,8 +4,8 @@
     <options />
     <round_page name="">
         <commands>
-            <action actionName="@ChangeWorkspace" actionParameter="Main|73A192783722457BAC469D3E249213B4"/>
-            <action actionName="@ChangeWorkspace" actionParameter="Main|ChattersBrowserWorkspace" />
+			<action actionName="" />
+			<action actionName="" />
             <action actionName="" />
             <action actionName="" />
             <action actionName="" />
@@ -94,21 +94,11 @@
                     </adjustments>
                 </encoder_page>
             </encoder_pages>
-            <wheel_pages>
-                <wheel_page name="ChattersWheelPage" displayName="Chatters" template="ChattersWheelTool" />
-            </wheel_pages>
-            <workspaces>
-                <workspace name="73A192783722457BAC469D3E249213B4" displayName="Workspace" touchPages="B1CBE7EC233745DAA143D9D9975C9E29" encoderPages="1457A37E3A4042628912C7FD40CE54C6" wheelPages="ViewersWheelPage" />
-                <workspace name="ChattersBrowserWorkspace" displayName="Chatters" />
-            </workspaces>
         </mode>
     </modes>
     <images>
-        <image action="CreateMarker" name="Twitch/TwitchCreateStreamMarker.png" library="Loupedeck.zip" />
-        <image action="ResetSettings" name="Restart.png" library="Loupedeck.zip" />
-        <image action="ClearChat" name="Twitch/TwitchClearChat.png" library="Loupedeck.zip" />
-        <image action="CreateClip" name="Twitch/TwitchCreateClip.png" library="Loupedeck.zip" />
-        <image action="RunCommercial" name="Twitch/TwitchAd1.png" library="Loupedeck.zip" />
+        <image action="RunCommercial" name="Twitch/TwitchAd1.png"/>
+		<image action="ResetSettings" name="Restart.png"/>
     </images>
     <strings>
     </strings>

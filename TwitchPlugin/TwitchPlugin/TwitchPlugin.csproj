@@ -65,13 +65,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\ClearChatCommand.cs" />
+    <Compile Include="Actions\CreateClipCommand.cs" />
+    <Compile Include="Actions\CreateMarkerCommand.cs" />
+    <None Include="Actions\ResetSettingsCommand.cs" />
     <Compile Include="Actions\UniversalStateSwitch.cs" />
-    <Compile Include="Actions\ChatFollowersCommand.cs" />
     <Compile Include="Actions\ChatSubToggleCmd.cs" />
-    <Compile Include="Actions\ChatSlowModeCommand.cs" />
     <Compile Include="Actions\GenericOnOffSwitch.cs" />
     <Compile Include="Actions\ChatEmoToggleCmd.cs" />
     <Compile Include="Actions\InternalDebugCommand.cs" />
+    <Compile Include="Actions\ViewerCountCommand.cs" />
     <Compile Include="Authenticator\AuthenticationServer.cs" />
     <Compile Include="DisplayNameMaps.cs" />
     <Compile Include="Exceptions\InvalidAccessTokenException.cs" />
@@ -134,6 +137,7 @@
     <EmbeddedResource Include="Icons\50x50\TwitchSubChat.png" />
     <EmbeddedResource Include="Icons\50x50\TwitchSubChat2.png" />
     <EmbeddedResource Include="Icons\50x50\TwitchViewers.png" />
+    <EmbeddedResource Include="Icons\50x50\Restart.png" />
     <EmbeddedResource Include="Icons\80x80\TwitchAd.png" />
     <EmbeddedResource Include="Icons\80x80\TwitchAd1.png" />
     <EmbeddedResource Include="Icons\80x80\TwitchChatMessage.png" />
@@ -153,6 +157,7 @@
     <EmbeddedResource Include="Icons\80x80\TwitchSubChat.png" />
     <EmbeddedResource Include="Icons\80x80\TwitchSubChat2.png" />
     <EmbeddedResource Include="Icons\80x80\TwitchViewers.png" />
+    <EmbeddedResource Include="Icons\80x80\Restart.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

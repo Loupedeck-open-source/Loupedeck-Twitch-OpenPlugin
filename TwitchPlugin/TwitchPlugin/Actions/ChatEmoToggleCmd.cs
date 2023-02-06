@@ -6,8 +6,8 @@
     {
         public ChatEmoToggleCmd()
                         : base(
-                            name: "ToggleEmotesOnly1",
-                            displayName: "(new) Chat Emotes-Only",
+                            name: "ToggleEmotesOnly",
+                            displayName: "Chat Emotes-Only",
                             description: "Toggles chat emotes-only mode",
                             groupName: "",
                             onStateName: "Emotes-Only chat is On",

@@ -7,6 +7,7 @@
     using TwitchLib.Api.Auth;
     using static Loupedeck.TwitchPlugin.AuthenticationServer;
     using TwitchLib.Api.Helix.Models.Entitlements;
+    using TwitchLib.Client.Events;
 
     public class TwitchPlugin : Plugin
     {
@@ -44,12 +45,11 @@
             TwitchPlugin.Proxy = new TwitchProxy();
         }
 
+
         public override void Load()
         {
             base.Load();
             this.LoadPluginIcons();
-
-
 
             TwitchPlugin.Proxy.AppConnected += this.OnConnected;
             TwitchPlugin.Proxy.AppDisconnected += this.OnDisconnected;
@@ -58,9 +58,11 @@
             TwitchPlugin.Proxy.ConnectionError += this.OnConnectionError;
             TwitchPlugin.Proxy.Error += this.OnError;
             TwitchPlugin.Proxy.IncorrectLogin += this.OnIncorrectLogin;
-            TwitchPlugin.Proxy.ChannelStatusChanged += this.OnChannelStateChanged;
-            TwitchPlugin.Proxy.ViewersChanged += this.OnViewersChanged;
-       
+
+            TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOn += this.UpdateFollowersBitmap;
+            TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOff += this.UpdateFollowersBitmap;
+            TwitchPlugin.Proxy.AppEvtChatSlowModeOn+= this.UpdateSlowModeBitmap;
+            TwitchPlugin.Proxy.AppEvtChatSlowModeOff += this.UpdateSlowModeBitmap;
 
             this._twitchAccount.LoginRequested += this.OnTwitchAccountOnLoginRequested;
             this._twitchAccount.LogoutRequested += this.OnTwitchAccountOnLogoutRequested;
@@ -77,13 +79,29 @@
             TwitchPlugin.Proxy.ConnectionError -= this.OnConnectionError;
             TwitchPlugin.Proxy.Error -= this.OnError;
             TwitchPlugin.Proxy.IncorrectLogin -= this.OnIncorrectLogin;
-            TwitchPlugin.Proxy.ChannelStatusChanged -= this.OnChannelStateChanged;
-            TwitchPlugin.Proxy.ViewersChanged -= this.OnViewersChanged;
-           
+
+            TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOn -= this.UpdateFollowersBitmap;
+            TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOff -= this.UpdateFollowersBitmap;
+            TwitchPlugin.Proxy.AppEvtChatSlowModeOn -= this.UpdateSlowModeBitmap;
+            TwitchPlugin.Proxy.AppEvtChatSlowModeOff -= this.UpdateSlowModeBitmap;
+
             this._twitchAccount.LoginRequested -= this.OnTwitchAccountOnLoginRequested;
             this._twitchAccount.LogoutRequested -= this.OnTwitchAccountOnLogoutRequested;
             this.ServiceEvents.OnlineFileContentReceived -= this.OnOnlineFileContentReceived;
             TwitchPlugin.Proxy.Dispose();
+        }
+        //Temporary stubs before followers and subscribers action are ready
+        private void UpdateFollowersBitmap(Object sender, EventArgs e)
+        {
+            this.OnActionImageChanged("ToggleFollowersOnlyList", String.Empty);
+            this.OnActionImageChanged("ToggleFollowersOnly", String.Empty);
+        }
+
+        //Temporary stubs before followers and subscribers action are ready        
+        private void UpdateSlowModeBitmap(Object sender, EventArgs e)
+        {
+            this.OnActionImageChanged("ToggleSlowChat", String.Empty);
+            this.OnActionImageChanged("ToggleSlowChatList", String.Empty);
         }
 
         public override void RunCommand(String commandName, String parameter)
@@ -152,10 +170,6 @@
 
             switch (actionName)
             {
-                case "ViewerCount":
-                    bitmap = GetViewersBitmapWithText("Twitch/TwitchViewers.png",
-                        $"{TwitchPlugin.Proxy.CurrentViewersCount}");
-                    return true;
                 case "ToggleSlowChatList" when !String.IsNullOrEmpty(actionParameter):
                     bitmap = GetViewersBitmapWithText(TwitchPlugin.Proxy.SlowMode == Int32.Parse(actionParameter)
                             ? "Twitch/TwitchSlowChat.png"
@@ -187,25 +201,16 @@
             imageLibraryName = null;
             switch (actionName)
             {
-                case "ToggleSubsOnly":
-                    imageFileName = TwitchPlugin.Proxy.IsSubOnly
-                        ? "Twitch/TwitchSubChat2.png"
-                        : "Twitch/TwitchSubChat.png";
-                    return true;
                 case "ToggleFollowersOnly":
                     imageFileName = TwitchPlugin.Proxy.FollowersOnly == TimeSpan.Zero
                         ? "Twitch/TwitchFollowerChatToggle.png"
                         : "Twitch/TwitchFollowerChat.png";
                     return true;
-                case "ToggleEmotesOnly":
-                    imageFileName = TwitchPlugin.Proxy.IsEmoteOnly
-                        ? "Twitch/TwitchEmoteChatToggle.png"
-                        : "Twitch/TwitchEmoteChat.png";
-                    return true;
                 case "ToggleSlowChat":
                     imageFileName = TwitchPlugin.Proxy.SlowMode == 0
                         ? "Twitch/TwitchSlowChatToggle.png"
                         : "Twitch/TwitchSlowChat.png";
+                
                     return true;
                 default:
                     imageFileName = null;
@@ -225,32 +230,13 @@
                         ? ".slowoff"
                         : ".slow 30");
                     break;
-                case "ToggleEmotesOnly":
-                    TwitchPlugin.Proxy.SendMessage(TwitchPlugin.Proxy.IsEmoteOnly
-                        ? ".emoteonlyoff"
-                        : ".emoteonly");
-                    break;
                 case "ToggleFollowersOnly":
                     TwitchPlugin.Proxy.SendMessage(TwitchPlugin.Proxy.IsFollowersOnly
                         ? ".followersoff"
                         : ".followers 10m");
                     break;
-                case "ToggleSubsOnly":
-                    TwitchPlugin.Proxy.SendMessage(TwitchPlugin.Proxy.IsSubOnly
-                        ? ".subscribersoff"
-                        : ".subscribers");
-                    break;
-                case "ClearChat":
-                    TwitchPlugin.Proxy.SendMessage(".clear");
-                    break;
                 case "RunCommercial":
                     TwitchPlugin.Proxy.SendMessage(".commercial");
-                    break;
-                case "CreateMarker":
-                    TwitchPlugin.Proxy.CreateMarkerCommand();
-                    break;
-                case "CreateClip":
-                    TwitchPlugin.Proxy.CreateClipCommandAsync().ConfigureAwait(false);
                     break;
                 case "ToggleSlowChatList":
                     TwitchPlugin.Proxy.SendMessage(TwitchPlugin.Proxy.SlowMode == Int32.Parse(parameter)
@@ -266,7 +252,10 @@
                     TwitchPlugin.Proxy.SendMessage($".commercial {parameter}");
                     break;
                 case "ResetSettings":
-                    this.ResetSettings();
+                    TwitchPlugin.Proxy.ResetAllSettings();
+                    break;
+                default:
+                    TwitchPlugin.PluginLog.Info($"ProcessCommand - Default {commandName}");
                     break;
             }
         }
@@ -354,50 +343,6 @@
             TwitchPlugin.PluginLog.Info($"Connected to twitch client");
 
             this.OnPluginStatusChanged(Loupedeck.PluginStatus.Normal, "Connected!");
-        }
-
-        private void OnChannelStateChanged(Object sender, EventArgs e)
-        {
-            //FIXME: This MUST be redone, no Channel events in Proxy
-
-            this.OnActionImageChanged("ToggleSubsOnly", String.Empty);
-            this.OnActionImageChanged("ToggleFollowersOnly", String.Empty);
-            this.OnActionImageChanged("ToggleEmotesOnly", String.Empty);
-            this.OnActionImageChanged("ToggleSlowChat", String.Empty);
-            this.OnActionImageChanged("ToggleSlowChatList", String.Empty);
-            this.OnActionImageChanged("ToggleFollowersOnlyList", String.Empty);
-        }
-
-        private void OnViewersChanged(Object sender, EventArgs e) => this.OnActionImageChanged("ViewerCount", null);
-
-        private void ResetSettings()
-        {
-            var messages = new List<String>();
-
-            if (TwitchPlugin.Proxy.IsSlowMode)
-            {
-                messages.Add(".slowoff");
-            }
-
-            if (TwitchPlugin.Proxy.IsEmoteOnly)
-            {
-                messages.Add(".emoteonlyoff");
-            }
-
-            if (TwitchPlugin.Proxy.IsFollowersOnly)
-            {
-                messages.Add(".followersoff");
-            }
-
-            if (TwitchPlugin.Proxy.IsSubOnly)
-            {
-                messages.Add(".subscribersoff");
-            }
-
-            foreach (var message in messages)
-            {
-                TwitchPlugin.Proxy.SendMessage(message);
-            }
         }
 
         private void OnOnlineFileContentReceived(Object sender, OnlineFileContentReceivedEventArgs e)

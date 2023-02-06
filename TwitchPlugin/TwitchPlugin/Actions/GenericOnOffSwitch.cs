@@ -42,7 +42,7 @@
             TwitchPlugin.Proxy.AppDisconnected += this.OnAppDisconnected;
 
             this.IsEnabled = false;
-            this.ConnectAppEvents(this.AppEvtTurnedOn, this.AppEvtTurnedOff);
+            this.ConnectAppEvents(this.AppEvtTurnedOff, this.AppEvtTurnedOn);
 
             return true;
         }
