@@ -89,7 +89,7 @@
         private void StopViewersUpdateTimer(Object sender, OnDisconnectedEventArgs e)
         {
             TwitchPlugin.PluginLog.Info($"Disabling Viewers update timer");
-            this._viewersUpdatetimer.Enabled = true;
+            this._viewersUpdatetimer.Enabled = false;
         }
         
     }
