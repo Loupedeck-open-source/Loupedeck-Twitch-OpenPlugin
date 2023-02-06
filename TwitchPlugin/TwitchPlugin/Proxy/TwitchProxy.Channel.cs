@@ -6,16 +6,10 @@
     using TwitchLib.Client.Events;
     using System.Linq;
     using TwitchLib.Client.Models;
-    using TwitchLib.Api.Helix.Models.Search;
-    using System.Runtime.CompilerServices;
-    using System.Collections.Generic;
-    using System.Net.Http.Headers;
     using TwitchLib.Client.Extensions;
-    using TwitchLib.Communication.Interfaces;
 
     public partial class TwitchProxy : IDisposable
     {
-        public EventHandler ChannelStatusChanged { get; set; }
         public Boolean IsSubOnly { get; private set; } = false;
         public Boolean IsEmoteOnly { get; private set; } = false;
         public Int32 SlowMode { get; private set; } = 0;
@@ -40,7 +34,7 @@
 
         public void AppToggleEmotesOnly() => this.SendMessage(this.IsEmoteOnly ? ".emoteonlyoff" : ".emoteonly");
         public void AppEmotesOnlyOn() => this.SendMessage(".emoteonly");
-        public void AppEmotesOnlyOff() => this.SendMessage(".emoteonlyff");
+        public void AppEmotesOnlyOff() => this.SendMessage(".emoteonlyoff");
         public void AppToggleSubscribersOnly() => this.SendMessage(this.IsSubOnly ? ".subscribersoff" : ".subscribers");
         public void AppSubscribersOnlyOn() => this.SendMessage(".subscribers");
 
@@ -50,26 +44,34 @@
 
         public void AppToggleFollowersOnly(Int32 duration = 0)
         {
-            if (this.IsFollowersOnly || duration == 0)
+            this.EnsureOnOwnChannel(() =>
             {
-                FollowersOnlyExt.FollowersOnlyOff(this._twitchClient, this.GetOwnChannel());
-            }
-            else
-            {
-                FollowersOnlyExt.FollowersOnlyOn(this._twitchClient, this.GetOwnChannel(), TimeSpan.FromSeconds(duration));
-            }
+                if (this.IsFollowersOnly || duration == 0)
+                {
+                    FollowersOnlyExt.FollowersOnlyOff(this._twitchClient, this.GetOwnChannel());
+                }
+                else
+                {
+                    FollowersOnlyExt.FollowersOnlyOn(this._twitchClient, this.GetOwnChannel(), TimeSpan.FromSeconds(duration));
+                }
+            });
         }
 
         public void AppToggleSlowMode(Int32 duration = 0)
         {
-            if(this.IsSlowMode || duration == 0)
-            {
-                SlowModeExt.SlowModeOff(this._twitchClient, this.GetOwnChannel());
-            }
-            else
-            {
-                SlowModeExt.SlowModeOn(this._twitchClient, this.GetOwnChannel(), TimeSpan.FromSeconds(duration));
-            }
+            this.EnsureOnOwnChannel(() => {
+                if (this.IsSlowMode || duration == 0)
+                {
+                    TwitchPlugin.PluginLog.Info($"Turning off slow mode");
+                    SlowModeExt.SlowModeOff(this._twitchClient, this.GetOwnChannel());
+                
+                }
+                else
+                {
+                    TwitchPlugin.PluginLog.Info($"Turning on slow mode for {duration}");
+                    SlowModeExt.SlowModeOn(this._twitchClient, this.GetOwnChannel(), TimeSpan.FromSeconds(duration));
+                }
+            });
         }
 
         public void CreateMarkerCommand()
@@ -158,13 +160,13 @@
        
         private void OnChannelStateChanged(Object sender, OnChannelStateChangedArgs e)
         {
-            void ConditionallyFireEvent(Boolean changed, Boolean condition, EventHandler<EventArgs> ChangedToTrueEvent, EventHandler<EventArgs> changedToFalseEvent,EventArgs ChangedToTrueEventArg=null)
+            void ConditionallyFireEvent(Boolean changed, Boolean condition, EventHandler<EventArgs> changedToTrueEvent, EventHandler<EventArgs> changedToFalseEvent,EventArgs ChangedToTrueEventArg=null)
             {
                 if (changed)
                 {
                     if (condition)
                     {
-                        ChangedToTrueEvent?.Invoke(this, ChangedToTrueEventArg ?? e);
+                        changedToTrueEvent?.Invoke(this, ChangedToTrueEventArg ?? e);
                     }
                     else
                     {
@@ -178,7 +180,6 @@
                 return;
             }
 
-            TwitchPlugin.PluginLog.Info($"Channel state changed {e.ChannelState.ToString()}");
 
             this.EnsureOnOwnChannel(()=>
             {
@@ -198,10 +199,12 @@
                     if (this.IsFollowersOnly)
                     {
                         var arg = new TimeSpanEventArg((Int32)this.FollowersOnly.TotalSeconds);
+                        TwitchPlugin.PluginLog.Info($"Received FollowersOnly for {this.FollowersOnly.TotalSeconds}");
                         this.AppEvtChatFollowersOnlyOn?.Invoke(this, arg);
                     }
                     else
                     {
+                        TwitchPlugin.PluginLog.Info($"Received FollowersOnlyOff");
                         this.AppEvtChatFollowersOnlyOff?.Invoke(this, e);
                     }
                 }
@@ -211,15 +214,16 @@
                     if (this.IsSlowMode)
                     {
                         var arg = new TimeSpanEventArg(this.SlowMode);
+                        TwitchPlugin.PluginLog.Info($"Received SlowModeOn for {this.SlowMode} s");
                         this.AppEvtChatSlowModeOn?.Invoke(this, arg);
                     }
                     else
                     {
+                        TwitchPlugin.PluginLog.Info($"Received SlowModeOff");
                         this.AppEvtChatSlowModeOff?.Invoke(this, e);
                     }
                 }
 
-                this.ChannelStatusChanged?.Invoke(this, EventArgs.Empty);
             });
         }
 
@@ -302,7 +306,48 @@
                     case "subs_on": 
                         this.AppEvtChatSubscribersOnlyOn?.Invoke(this, null); 
                         break;
+
+                    case "slow_off":
+                        if (this.IsSlowMode)
+                        {
+                            TwitchPlugin.PluginLog.Info($"Note: Switching off Slow mode ");
+                            this.SlowMode = 0;
+                            this.AppEvtChatSlowModeOff?.Invoke(this, null);
+                        }
+                        break;
+
+                    case "slow_on":
+                        if (!this.IsSlowMode)
+                        {
+                            var seconds = 1;
+                            if(Helpers.TryExecuteFunc(() =>
+                            {
+                                //@msg-id=slow_on :tmi.twitch.tv NOTICE #beeeightwelve : This room is now in slow mode. You may send messages every 120 seconds.
+                                var input = args.RawIRC;
+                                const String start = "every ";
+                                const String end = " second";
+                                var startIndex = input.IndexOf(start) + start.Length;
+                                var endIndex = input.IndexOf(end, startIndex);
+                                return (endIndex > 0 && startIndex > start.Length) 
+                                       ? Int32.Parse(input.Substring(startIndex, endIndex - startIndex)) 
+                                       : 2;
+                            }, out var retval))
+                            {
+                                seconds = retval;
+                            }
+                            else
+                            {
+                                TwitchPlugin.PluginLog.Warning($"Cannot retreive slow seconds number from string");
+                            }
+
+                            TwitchPlugin.PluginLog.Info($"Note: Switching on  Slow mode for {seconds} seconds");
+                            this.SlowMode = seconds;
+                            this.AppEvtChatSlowModeOn?.Invoke(this, null);
+                        }
+                        break;
+
                 }
+
             }
         }
     }

@@ -9,6 +9,7 @@
     using TwitchLib.Api.Core.Exceptions;
     using TwitchLib.Client;
     using TwitchLib.Client.Events;
+    using TwitchLib.Client.Extensions;
     using TwitchLib.Client.Interfaces;
     using TwitchLib.Communication.Clients;
     using TwitchLib.Communication.Events;
@@ -169,6 +170,49 @@
             this.DisposeTwitchClient();
         }
 
+        public void AppCreateClipCommand()
+        {
+            if(this.IsConnected)
+            {
+                Helpers.TryExecuteSafe(() => this.CreateClipCommandAsync().ConfigureAwait(false));
+            }
+        }
+
+
+        public void AppClearChat()
+        {
+            if (this.IsConnected)
+            {
+                Helpers.TryExecuteSafe(() => this._twitchClient.ClearChat(this._userInfo.Login));
+            }
+        }
+
+        public void ResetAllSettings()
+        {
+            TwitchPlugin.PluginLog.Info("Resetting all settings to default");
+
+            if (TwitchPlugin.Proxy.IsSlowMode)
+            {
+                this.AppToggleSlowMode(0);
+            }
+
+            if (TwitchPlugin.Proxy.IsEmoteOnly)
+            {
+                this.AppEmotesOnlyOff();
+            }
+
+            if (TwitchPlugin.Proxy.IsFollowersOnly)
+            {
+                this.AppToggleFollowersOnly(0);
+            }
+
+            if (this.IsSubOnly)
+            {
+                this.AppSubscribersOnlyOff();
+            }
+        }
+
+
         private void OnError(Object sender, OnErrorEventArgs e) => this.Error?.Invoke(sender, e.Exception);
 
 #if DEBUG
@@ -227,26 +271,3 @@
 
     }
 }
-
-#if false
-    case "ToggleSlowChat":
-                    TwitchPlugin.TwitchPlugin.SendMessage(TwitchPlugin.TwitchPlugin.SlowMode != 0
-                        ? ".slowoff"
-                        : ".slow 30");
-                    break;
-                case "ToggleEmotesOnly":
-                    TwitchPlugin.TwitchPlugin.SendMessage(TwitchPlugin.TwitchPlugin.IsEmoteOnly
-                        ? ".emoteonlyoff"
-                        : ".emoteonly");
-                    break;
-                case "ToggleFollowersOnly":
-                    TwitchPlugin.TwitchPlugin.SendMessage(TwitchPlugin.TwitchPlugin.FollowersOnly != TimeSpan.Zero
-                        ? ".followersoff"
-                        : ".followers 10m");
-                    break;
-                case "ToggleSubsOnly":
-                    TwitchPlugin.TwitchPlugin.SendMessage(TwitchPlugin.TwitchPlugin.IsSubOnly
-                        ? ".subscribersoff"
-                        : ".subscribers");
-                    break;
-#endif
