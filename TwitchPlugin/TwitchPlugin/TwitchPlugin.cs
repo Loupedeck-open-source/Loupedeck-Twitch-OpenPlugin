@@ -316,14 +316,24 @@
             //User never disconnects from Twitch. 
         }
 
+        // How many times we got 'incorrect login' error - this might be an error related to re-authentication
+        // Reset on successful connect
+        private UInt32 _incorrectLoginErrors = 0;
+        private const UInt32 MaxIncorrectLoginErrors = 10; 
+
         private void OnIncorrectLogin(Object sender, (String, Exception) e)
         {
             var (_, ex) = e;
 
             TwitchPlugin.PluginLog.Warning(ex,$"Incorrect Login: {ex.Message}");
-            
-            // Incorrect login happens when we are re-authenticating. Let's ignore it for now
-            this._twitchAccount.ReportLogout();
+           
+            if( this._incorrectLoginErrors++ > MaxIncorrectLoginErrors )
+            {
+                TwitchPlugin.PluginLog.Warning("Too many incorrect logins. Reporting disconnect");
+
+                // Incorrect login happens when we are re-authenticating. Let's ignore it for now
+                this._twitchAccount.ReportLogout();
+            }
         }
 
         private void OnTokensUpdated(Object sender, TokensUpdatedEventArg args)
@@ -341,7 +351,7 @@
         private void OnConnected(Object sender, EventArgs e)
         {
             TwitchPlugin.PluginLog.Info($"Connected to twitch client");
-
+            this._incorrectLoginErrors = 0;
             this.OnPluginStatusChanged(Loupedeck.PluginStatus.Normal, "Connected!");
         }
 

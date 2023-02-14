@@ -68,7 +68,6 @@
     <Compile Include="Actions\ClearChatCommand.cs" />
     <Compile Include="Actions\CreateClipCommand.cs" />
     <Compile Include="Actions\CreateMarkerCommand.cs" />
-    <None Include="Actions\ResetSettingsCommand.cs" />
     <Compile Include="Actions\UniversalStateSwitch.cs" />
     <Compile Include="Actions\ChatSubToggleCmd.cs" />
     <Compile Include="Actions\GenericOnOffSwitch.cs" />
