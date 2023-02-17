@@ -65,6 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\ChatSlowModeCommand.cs" />
     <Compile Include="Actions\ClearChatCommand.cs" />
     <Compile Include="Actions\CreateClipCommand.cs" />
     <Compile Include="Actions\CreateMarkerCommand.cs" />
@@ -101,9 +102,6 @@
       <LastGenOutput>Localization.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="PluginConfiguration.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PluginConfiguration2.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
