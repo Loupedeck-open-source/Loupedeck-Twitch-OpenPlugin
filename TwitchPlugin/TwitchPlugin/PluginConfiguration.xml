@@ -17,8 +17,8 @@
         <group displayName="">
 			<!-- 
             <command name="ToggleSlowChatList" displayName="Chat Slow Mode" profileActionType="list;Duration (seconds):" description="Turns Slow Mode for Twitch Chat on/off"/>
+			<command name="ToggleFollowersOnlyList" displayName="Chat Followers-Only" profileActionType="list;Duration (seconds):" description="Turns Followers-Only mode for Twitch Chat on/off"/>
 			-->
-            <command name="ToggleFollowersOnlyList" displayName="Chat Followers-Only" profileActionType="list;Duration (seconds):" description="Turns Followers-Only mode for Twitch Chat on/off"/>
 			<command name="ResetSettings" displayName="Reset Settings" description="Resets chat settings to default."/>
 		</group>
       <group displayName="SendChatMessage">
@@ -30,12 +30,15 @@
         <layout name="Main">
 			<!--
             <command name="ToggleSlowChat" otherControls="AllButtons"/>
-			-->
             <command name="ToggleFollowersOnly" otherControls="AllButtons" />
-            <command name="RunCommercial" otherControls="AllButtons" />
+			-->
+			<command name="RunCommercial" otherControls="AllButtons" />
             <command name="SendChatMessage" displayName="AllButtons"/>
+			<!--
+			
             <command name="ToggleSlowChatList" displayName="AllButtons"/>
             <command name="ToggleFollowersOnlyList" displayName="AllButtons"/>
+			-->
             <command name="RunCommercialList" displayName="AllButtons"/>
         </layout>
     </layouts>

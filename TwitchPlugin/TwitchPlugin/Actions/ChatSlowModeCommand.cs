@@ -20,8 +20,8 @@
         };
 
 
-        private readonly String ImgSlowModeOn  = "TwitchSlowChat.png";
-        private readonly String ImgSlowModeOff = "TwitchSlowChatToggle.png";
+        private readonly String ImgOn  = "TwitchSlowChat.png";
+        private readonly String ImgOff = "TwitchSlowChatToggle.png";
 
         private const Int32 STATE_OFF = 0;
         private const Int32 STATE_ON  = 1;
@@ -38,7 +38,6 @@
             this.Description = "Require chat users to wait between sending messages. Subscribers can be exempted via Partner/Affiliate settings";
             this.GroupName = "";
             this.Name = "ToggleSlowChatList";
-
 
             this.ActionEditor.AddControl(
                            new ActionEditorListbox(name: SlowModeDurationControl, labelText: "Slow mode duration:"));
@@ -77,34 +76,31 @@
         { }
         //=> this.IsEnabled = false;
 
-        private void SetStateForAll(Int32 stateIndex)
+        private void SetStateForItem(Int32 stateIndex, TimeSpanEventArg e)
         {
-            foreach(var item in _allSlowCommandsActionParameters)
+            TwitchPlugin.PluginLog.Info($"SloMo: Setting state {stateIndex} for TimeSpan item {e.Seconds}");
+
+            try
             {
+                //Reconstructing ActionParameter to set the state for specific action
                 var d = new Dictionary<String, String>
                 {
-                    [item.Key] = item.Value
+                    [SlowModeDurationControl] = e.Seconds.ToString()
                 };
-                var p = new ActionEditorActionParameters(d);
-                this.SetCurrentState(p, stateIndex);
+
+                this.SetCurrentState(new ActionEditorActionParameters(d), stateIndex);
+
                 this.ActionImageChanged();
+            }
+            catch (Exception ex)
+            {
+                TwitchPlugin.PluginLog.Error(ex, $"SloMo: Error setting state  {stateIndex} for {e.Seconds} time value");
             }
         }
 
-        private void OnAppSlowModeOn(Object sender, TimeSpanEventArg e)
-        {
-            TwitchPlugin.PluginLog.Info("OnAppSlowModeOn");
+        private void OnAppSlowModeOn(Object sender, TimeSpanEventArg e) => this.SetStateForItem(STATE_ON, e);
 
-            this.SetStateForAll(STATE_ON);
-            this.ActionImageChanged();
-        }
-
-        private void OnAppSlowModeOff(Object sender, EventArgs e)
-        {
-            TwitchPlugin.PluginLog.Info("OnAppSlowModeOff");
-            this.SetStateForAll(STATE_OFF);
-            this.ActionImageChanged();
-        }
+        private void OnAppSlowModeOff(Object sender, TimeSpanEventArg e) => this.SetStateForItem(STATE_OFF, e);
 
         private void OnActionEditorControlValueChanged(Object sender, ActionEditorControlValueChangedEventArgs e)
         {
@@ -129,55 +125,63 @@
             {
                 var ts = ChatSlowModeCommand.SlowModeTimeSpans[i].ToString();
                 e.AddItem(ts, $"{ts} sec slow mode", $"Enables Slow mode for {ChatSlowModeCommand.SlowModeTimeSpans[i]} sec");
-                //this.Plugin.Log.Info($"AE: Adding ('{v.Name}','{v.DisplayName}','{v.Description}')");
             }
-            
         }
-
 
         protected override BitmapImage GetCommandImage(ActionEditorActionParameters actionParameters, Int32 stateIndex, Int32 imageWidth, Int32 imageHeight)
         {
             //We just return the same image with different text
-            var iconText = "N/A s";
+            var isOn = TwitchPlugin.Proxy.IsSlowMode; // stateIndex == 1;
+            var iconFileName = this.ImgOff;
 
-            if( actionParameters.TryGetString(SlowModeDurationControl, out var modeDuration) )
+            var iconText = "N/A";
+
+            if (actionParameters.TryGetString(SlowModeDurationControl, out var modeDuration))
             {
                 //When in slow mode, if the 'time' is not ours (this button's) we put label as "(duration) s". If it is ours, we put it as "duration s"
-                iconText = !TwitchPlugin.Proxy.IsSlowMode || modeDuration == TwitchPlugin.Proxy.SlowMode.ToString()
-                          ? $"{modeDuration} s" : $"({modeDuration}) s";
+                iconText = $"{modeDuration} s";
+
+                //Which one was on?  
+                if (isOn && modeDuration == TwitchPlugin.Proxy.SlowMode.ToString())
+                {
+                    iconFileName = this.ImgOn;
+                }
+
+                TwitchPlugin.PluginLog.Info($"GetCommandImage: modeDuration{modeDuration} state={stateIndex} IsOn? {isOn} imgname = {iconFileName}");
             }
 
-            // FIXME FIXME: It should be isSlowmode = stateIndex == 1;  BUT IT DOES NOT WORK NOW!
-            var isSlowmode = TwitchPlugin.Proxy.IsSlowMode; // stateIndex == 1;
-            var iconFileName = /*TwitchPlugin.Proxy.IsSlowMode*/ isSlowmode ? this.ImgSlowModeOn : this.ImgSlowModeOff;
-            return  (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageWidth == 90 ? PluginImageSize.Width90 : PluginImageSize.Width60, iconFileName, iconText, isSlowmode);
+            return (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageWidth, imageHeight, iconFileName, iconText, iconFileName == this.ImgOn);
         }
 
         protected override Boolean RunCommand(ActionEditorActionParameters actionParameters)
         {
-            //if we're in slow mode, we just swithing it off from any button. 
-            if( TwitchPlugin.Proxy.IsSlowMode )
+            if (!actionParameters.TryGetString(SlowModeDurationControl, out var modeDuration) || String.IsNullOrEmpty(modeDuration))
             {
-                TwitchPlugin.Proxy.AppToggleSlowMode(0);
-                return true;
+                TwitchPlugin.Trace($"SlowMode: Cannot parse action parameters ");
+                return false;
             }
 
-            if (!actionParameters.TryGetString(SlowModeDurationControl, out var slowmodeDuration))
+            //We only switch off what we previously switched on. 
+            if (TwitchPlugin.Proxy.IsSlowMode && modeDuration == TwitchPlugin.Proxy.SlowMode.ToString())
             {
-                TwitchPlugin.Trace($"SlowMode: Cannot get action param {actionParameters}");
-            }
-
-            if (Int32.TryParse(slowmodeDuration, out var modeDuration))
-            {
-                    TwitchPlugin.Proxy.AppToggleSlowMode(modeDuration);
+                TwitchPlugin.Proxy.AppSlowModeOff();
             }
             else
             {
-                TwitchPlugin.Trace($"SlowMode: Cannot parse action param {slowmodeDuration}");
+                if (Int32.TryParse(modeDuration, out var seconds))
+                {
+                    TwitchPlugin.Trace($"SlowMode: Turning on with {seconds} s");
+                    TwitchPlugin.Proxy.AppSlowModeOn(seconds);
+                }
+                else
+                {
+                    TwitchPlugin.Trace($"SlowMode: Cannot parse action {modeDuration}");
+                }
             }
-             
             return true;
         }
 
+
+        /****/
     }
 }
