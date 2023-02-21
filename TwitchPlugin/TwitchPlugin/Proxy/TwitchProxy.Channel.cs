@@ -235,8 +235,14 @@
                 {
                     if (this.IsFollowersOnly)
                     {
-                        var arg = new TimeSpanEventArg((Int32)this.FollowersOnly.TotalSeconds);
+                        var arg = new TimeSpanEventArg(this.FollowersOnly);
                         TwitchPlugin.PluginLog.Info($"Received FollowersOnly for {this.FollowersOnly.TotalSeconds}");
+                        if (prev_follow != TwitchProxy.FollowersModeOff)
+                        {
+                            //Meaning, we are switching between different slow modes
+                            this.AppEvtChatFollowersOnlyOff?.Invoke(this, new TimeSpanEventArg(prev_follow));
+                        }
+
                         this.AppEvtChatFollowersOnlyOn?.Invoke(this, arg);
                     }
                     else
@@ -251,9 +257,14 @@
                 {
                     if (this.IsSlowMode)
                     {
-                        var arg = new TimeSpanEventArg(this.SlowMode);
                         TwitchPlugin.PluginLog.Info($"Received SlowModeOn for {this.SlowMode} s");
-                        this.AppEvtChatSlowModeOn?.Invoke(this, arg);
+                        if (prev_slow != 0)
+                        {
+                            //Meaning, we are switching between different slow modes
+                            this.AppEvtChatSlowModeOff?.Invoke(this, new TimeSpanEventArg(prev_slow));
+                        }
+
+                        this.AppEvtChatSlowModeOn?.Invoke(this, new TimeSpanEventArg(this.SlowMode));
                     }
                     else
                     {
