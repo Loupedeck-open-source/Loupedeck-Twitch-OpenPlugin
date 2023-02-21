@@ -7,6 +7,7 @@
     {
         public Int32 Seconds { get; private set; }
         public TimeSpanEventArg(Int32 seconds) => this.Seconds = seconds;
+        public TimeSpanEventArg(TimeSpan ts) => this.Seconds = (Int32)ts.TotalSeconds;
     }
 
     public class AccessTokenReceivedEventArgs : EventArgs
