@@ -48,7 +48,6 @@
 
             this.AddState(OnStateName, "Slow Mode on");
             this.AddState(OffStateName, "Slow Mode off");
-
         }
 
         protected override Boolean OnLoad()
@@ -79,8 +78,6 @@
 
         private void SetStateForItem(Int32 stateIndex, TimeSpanEventArg e)
         {
-            TwitchPlugin.PluginLog.Info($"SloMo: Setting state {stateIndex} for TimeSpan item {e.Seconds}");
-
             try
             {
                 //Reconstructing ActionParameter to set the state for specific action
@@ -88,27 +85,13 @@
                 {
                     [SlowModeDurationControl] = e.Seconds.ToString()
                 };
-                var p = new ActionEditorActionParameters(d);
 
-                if( this.TryGetCurrentStateIndex(p, out var currentStateIdx) )
-                {
-                    if (currentStateIdx != stateIndex)
-                    {
-                        this.SetCurrentState(p, stateIndex);
-                        //this.ActionImageChanged();
-                        /*if (!this.TryGetCurrentStateIndex(p, out var newStateIdx) || newStateIdx!=stateIndex)
-                        {
-                            TwitchPlugin.PluginLog.Info($"SloMo: STATE IS NOT SET TO {stateIndex} for TimeSpan item {e.Seconds} (IS NOW {newStateIdx})");
-                        }*/
-
-                    }
-                }
+                this.SetCurrentState(new ActionEditorActionParameters(d), stateIndex);
             }
             catch (Exception ex)
             {
                 TwitchPlugin.PluginLog.Error(ex, $"SloMo: Error setting state  {stateIndex} for {e.Seconds} time value");
             }
-            
         }
 
         private void OnAppSlowModeOn(Object sender, TimeSpanEventArg e) => this.SetStateForItem(STATE_ON, e);
@@ -181,7 +164,5 @@
             return true;
         }
 
-
-        /****/
     }
 }

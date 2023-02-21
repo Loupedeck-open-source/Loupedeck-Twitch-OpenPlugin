@@ -93,27 +93,14 @@
 
         private void SetStateForItem(Int32 stateIndex, TimeSpanEventArg e)
         {
-            TwitchPlugin.PluginLog.Info($"Followers: Setting state {stateIndex} for TimeSpan item {e.Seconds}");
-
             try
             {
                 //Reconstructing ActionParameter to set the state for specific action
-                //var item = Array.Find(ChatFollowersCommand.FollowModeTimeSpans, x => x.durationSeconds == e.Seconds);                
                 var d = new Dictionary<String, String>
                 {
                     [FollowModeDurationControl] = e.Seconds.ToString()
                 };
-
-                var p = new ActionEditorActionParameters(d);
-
-                if (this.TryGetCurrentStateIndex(p, out var currentStateIdx))
-                {
-                    if (currentStateIdx != stateIndex)
-                    {
-                        this.SetCurrentState(p, stateIndex);
-                        //this.ActionImageChanged();
-                    }
-                }
+                this.SetCurrentState(new ActionEditorActionParameters(d), stateIndex);
             }
             catch (Exception ex)
             {
@@ -201,7 +188,5 @@
             }
             return true;
         }
-
     }
-}
-        
+}       
