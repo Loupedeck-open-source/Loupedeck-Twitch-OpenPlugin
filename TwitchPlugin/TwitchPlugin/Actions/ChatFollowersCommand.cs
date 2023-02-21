@@ -104,9 +104,16 @@
                     [FollowModeDurationControl] = e.Seconds.ToString()
                 };
 
-                this.SetCurrentState(new ActionEditorActionParameters(d), stateIndex);
+                var p = new ActionEditorActionParameters(d);
 
-                this.ActionImageChanged();
+                if (this.TryGetCurrentStateIndex(p, out var currentStateIdx))
+                {
+                    if (currentStateIdx != stateIndex)
+                    {
+                        this.SetCurrentState(p, stateIndex);
+                        //this.ActionImageChanged();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -147,15 +154,12 @@
                 e.AddItem(item.durationSeconds.ToString(), $"{item.longName}", $"Followers can chat if they followed you at least {item.longName}");
             }
         }
-
         protected override BitmapImage GetCommandImage(ActionEditorActionParameters actionParameters, Int32 stateIndex, Int32 imageWidth, Int32 imageHeight)
         {
-            //We just return the same image with different text
-            
-            var isOn = TwitchPlugin.Proxy.IsFollowersOnly; // stateIndex == 1;
-            var iconFileName = this.ImgOff;
+            var isOn = stateIndex == 1; //TwitchPlugin.Proxy.IsFollowersOnly
+            var iconFileName = isOn ? this.ImgOn : this.ImgOff;
 
-            var iconText = "N/A";//            actionParameters.TryGetString(FollowModeDurationControl, out var modeDuration)  ? $"{this.GetTimeRangeDisplayName(modeDuration)}" : "N/A" ;
+            var iconText = "N/A";
 
             if (actionParameters.TryGetString(FollowModeDurationControl, out var modeDuration))
             {
@@ -165,18 +169,9 @@
                 {
                     iconText = $"{item.shortName}";
                 }
-
-                //Which one was on? 
-                if (isOn && modeDuration == this.GetSeconds(TwitchPlugin.Proxy.FollowersOnly).ToString())
-                {
-                    iconFileName = this.ImgOn;
-                }
-
-                TwitchPlugin.PluginLog.Info($"GetCommandImage: modeDuration{modeDuration} state={stateIndex} FollowOn? {isOn} imgname = {iconFileName}");
-
             }
 
-            return (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageWidth,imageHeight, iconFileName, iconText, iconFileName == this.ImgOn);
+            return (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageWidth, imageHeight, iconFileName, iconText, iconFileName == this.ImgOn);
         }
 
         protected override Boolean RunCommand(ActionEditorActionParameters actionParameters)
@@ -201,7 +196,7 @@
                 }
                 else
                 {
-                    TwitchPlugin.Trace($"FollowierMode : Cannot parse action {modeDuration}");
+                    TwitchPlugin.Trace($"FollowerMode : Cannot parse action {modeDuration}");
                 }
             }
             return true;

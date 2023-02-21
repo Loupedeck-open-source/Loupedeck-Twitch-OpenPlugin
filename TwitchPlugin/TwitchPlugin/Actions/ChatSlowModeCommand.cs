@@ -2,10 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Net.Http.Headers;
 
     internal class ChatSlowModeCommand : MultistateActionEditorCommand
     {
-        private static readonly UInt32[] SlowModeTimeSpans = new UInt32[] { 1, 3, 5, 10, 15, 30, 60, 120 };
+        private static readonly Int32[] SlowModeTimeSpans = new Int32[] { 1, 3, 5, 10, 15, 30, 60, 120 };
 
         private static readonly Dictionary<String, String> _allSlowCommandsActionParameters = new Dictionary<String, String>()
         {
@@ -87,19 +88,31 @@
                 {
                     [SlowModeDurationControl] = e.Seconds.ToString()
                 };
+                var p = new ActionEditorActionParameters(d);
 
-                this.SetCurrentState(new ActionEditorActionParameters(d), stateIndex);
+                if( this.TryGetCurrentStateIndex(p, out var currentStateIdx) )
+                {
+                    if (currentStateIdx != stateIndex)
+                    {
+                        this.SetCurrentState(p, stateIndex);
+                        //this.ActionImageChanged();
+                        /*if (!this.TryGetCurrentStateIndex(p, out var newStateIdx) || newStateIdx!=stateIndex)
+                        {
+                            TwitchPlugin.PluginLog.Info($"SloMo: STATE IS NOT SET TO {stateIndex} for TimeSpan item {e.Seconds} (IS NOW {newStateIdx})");
+                        }*/
 
-                this.ActionImageChanged();
+                    }
+                }
             }
             catch (Exception ex)
             {
                 TwitchPlugin.PluginLog.Error(ex, $"SloMo: Error setting state  {stateIndex} for {e.Seconds} time value");
             }
+            
         }
 
         private void OnAppSlowModeOn(Object sender, TimeSpanEventArg e) => this.SetStateForItem(STATE_ON, e);
-
+     
         private void OnAppSlowModeOff(Object sender, TimeSpanEventArg e) => this.SetStateForItem(STATE_OFF, e);
 
         private void OnActionEditorControlValueChanged(Object sender, ActionEditorControlValueChangedEventArgs e)
@@ -130,25 +143,12 @@
 
         protected override BitmapImage GetCommandImage(ActionEditorActionParameters actionParameters, Int32 stateIndex, Int32 imageWidth, Int32 imageHeight)
         {
-            //We just return the same image with different text
-            var isOn = TwitchPlugin.Proxy.IsSlowMode; // stateIndex == 1;
-            var iconFileName = this.ImgOff;
+            var isOn = stateIndex == 1; //TwitchPlugin.Proxy.IsSlowMode
+            var iconFileName = isOn ? this.ImgOn : this.ImgOff;
 
-            var iconText = "N/A";
-
-            if (actionParameters.TryGetString(SlowModeDurationControl, out var modeDuration))
-            {
-                //When in slow mode, if the 'time' is not ours (this button's) we put label as "(duration) s". If it is ours, we put it as "duration s"
-                iconText = $"{modeDuration} s";
-
-                //Which one was on?  
-                if (isOn && modeDuration == TwitchPlugin.Proxy.SlowMode.ToString())
-                {
-                    iconFileName = this.ImgOn;
-                }
-
-                TwitchPlugin.PluginLog.Info($"GetCommandImage: modeDuration{modeDuration} state={stateIndex} IsOn? {isOn} imgname = {iconFileName}");
-            }
+            var iconText = actionParameters.TryGetString(SlowModeDurationControl, out var modeDuration) 
+                    ? $"{modeDuration} s" 
+                    : "N/A";
 
             return (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageWidth, imageHeight, iconFileName, iconText, iconFileName == this.ImgOn);
         }
