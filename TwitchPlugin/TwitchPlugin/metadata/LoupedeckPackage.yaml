@@ -15,7 +15,7 @@ displayName: Twitch
 pluginFileName: TwitchPlugin.dll
 
 # Plugin version.
-version: 5.6.0.20004
+version: 5.6.1.20000
 
 # Author of the plugin. The author can be a company or an individual developer.
 author: Andrei Laperie, Loupedeck
@@ -44,7 +44,7 @@ supportedDevices:
     - LoupedeckCtFamily
 
     # LoupedeckPlusFamily covers Loupedeck+ device. Uncomment the following line to support Loupedeck+.
-    #- LoupedeckPlusFamily
+    - LoupedeckPlusFamily
 
 # List of plugin capabilities.
 pluginCapabilities:
