@@ -7,6 +7,7 @@
     using TwitchLib.Api;
     using TwitchLib.Api.Core;
     using TwitchLib.Api.Core.Exceptions;
+    using TwitchLib.Api.Helix.Models.Chat.ChatSettings;
     using TwitchLib.Client;
     using TwitchLib.Client.Events;
     using TwitchLib.Client.Extensions;
@@ -144,7 +145,7 @@
             this._authServer.OnTokenReceived += this.OnAccessTokenReceived;
             this._authServer.OnTokenError += this.OnAccessTokenError;
 
-            this.SetChannelFlags(null);
+            this.UpdateChannelStatusFromTwitch(null);
         }
 
         public void SendMessage(String message)
@@ -224,7 +225,8 @@
                     "OnTwitchClientDisconnected",
                     "OnTwitchConnectionError",
                     "Disconnect",
-                    "Connect"
+                    "Connect",
+                    "HelixThis"
                 };
 
             return strings.ToDictionary(key => key, value => value);
@@ -264,6 +266,22 @@
                     this.DoConnect();
                     break;
                 }
+
+                case "HelixThis":
+                {
+                    //this._twitchClient.JoinedChannels[0].Channel
+                    var id = this._userInfo.Id;
+                    TwitchPlugin.PluginLog.Info($"GetChatSettingsAsync Trying to get info for id");
+
+                    var x = this.twitchApi.Helix.Chat.GetChatSettingsAsync(id, id).Result;
+
+                    TwitchPlugin.PluginLog.Info($"GetChatSettingsAsync response received {x.Data}");
+
+                    break;
+                }
+
+
+
 
             }
         }
