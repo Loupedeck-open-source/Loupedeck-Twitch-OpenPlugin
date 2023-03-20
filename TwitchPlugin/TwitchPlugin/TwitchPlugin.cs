@@ -92,19 +92,6 @@
             this.ServiceEvents.OnlineFileContentReceived -= this.OnOnlineFileContentReceived;
             TwitchPlugin.Proxy.Dispose();
         }
-        //Temporary stubs before followers and subscribers action are ready
-        private void UpdateFollowersBitmap(Object sender, EventArgs e)
-        {
-            this.OnActionImageChanged("ToggleFollowersOnlyList", String.Empty);
-            this.OnActionImageChanged("ToggleFollowersOnly", String.Empty);
-        }
-
-        //Temporary stubs before followers and subscribers action are ready        
-        private void UpdateSlowModeBitmap(Object sender, EventArgs e)
-        {
-            this.OnActionImageChanged("ToggleSlowChat", String.Empty);
-            this.OnActionImageChanged("ToggleSlowChatList", String.Empty);
-        }
 
         public override void RunCommand(String commandName, String parameter)
         {
@@ -141,12 +128,8 @@
 
             switch (actionName)
             {
-                case "ToggleSlowChatList":
-                    return GetListParameters("Slow Mode", DisplayNameMaps.SlowModeNamesMap);
                 case "RunCommercialList":
                     return GetListParameters("Run Commercial", DisplayNameMaps.RunCommercialNamesMap);
-                case "ToggleFollowersOnlyList":
-                    return GetListParameters("Followers-Only", DisplayNameMaps.FollowersOnlyNamesMap);
                 default:
                     return Array.Empty<PluginActionParameter>();
             }
@@ -172,22 +155,6 @@
 
             switch (actionName)
             {
-                case "ToggleSlowChatList" when !String.IsNullOrEmpty(actionParameter):
-                    bitmap = GetViewersBitmapWithText(TwitchPlugin.Proxy.SlowMode == Int32.Parse(actionParameter)
-                            ? "Twitch/TwitchSlowChat.png"
-                            : "Twitch/TwitchSlowChatToggle.png",
-                        this.Localization.GetString(DisplayNameMaps.SlowModeNamesMap[actionParameter]), 11);
-                    return true;
-                case "ToggleFollowersOnlyList" when !String.IsNullOrEmpty(actionParameter):
-                    var isFollowersOnly = TwitchPlugin.Proxy.FollowersOnly == ParseTimeSpan(actionParameter);
-                    bitmap = GetViewersBitmapWithText(isFollowersOnly
-                            ? "Twitch/TwitchFollowerChat.png"
-                            : "Twitch/TwitchFollowerChatToggle.png",
-                        this.Localization.GetString(DisplayNameMaps.FollowersOnlyNamesMap[actionParameter]), 11,
-                        isFollowersOnly
-                            ? BitmapColor.Black
-                            : BitmapColor.White);
-                    return true;
                 case "RunCommercialList" when !String.IsNullOrEmpty(actionParameter):
                     bitmap = GetViewersBitmapWithText("Twitch/TwitchAd1.png",
                         this.Localization.GetString(DisplayNameMaps.RunCommercialNamesMap[actionParameter]), 11);
@@ -204,28 +171,8 @@
                 case "SendChatMessage":
                     TwitchPlugin.Proxy.SendMessage(parameter);
                     break;
-                case "ToggleSlowChat":
-                    TwitchPlugin.Proxy.SendMessage(TwitchPlugin.Proxy.IsSlowMode
-                        ? ".slowoff"
-                        : ".slow 30");
-                    break;
-                case "ToggleFollowersOnly":
-                    TwitchPlugin.Proxy.SendMessage(TwitchPlugin.Proxy.IsFollowersOnly
-                        ? ".followersoff"
-                        : ".followers 10m");
-                    break;
                 case "RunCommercial":
                     TwitchPlugin.Proxy.SendMessage(".commercial");
-                    break;
-                case "ToggleSlowChatList":
-                    TwitchPlugin.Proxy.SendMessage(TwitchPlugin.Proxy.SlowMode == Int32.Parse(parameter)
-                        ? ".slowoff"
-                        : $".slow {parameter}");
-                    break;
-                case "ToggleFollowersOnlyList":
-                    TwitchPlugin.Proxy.SendMessage(TwitchPlugin.Proxy.FollowersOnly == ParseTimeSpan(parameter)
-                        ? ".followersoff"
-                        : $".followers {parameter}");
                     break;
                 case "RunCommercialList":
                     TwitchPlugin.Proxy.SendMessage($".commercial {parameter}");
@@ -371,28 +318,6 @@
             this.Info.Icon256x256 = EmbeddedResources.ReadImage("Loupedeck.TwitchPlugin.metadata.Icon256x256.png");
         }
 
-        private static TimeSpan ParseTimeSpan(String str)
-        {
-            switch (str)
-            {
-                case "10m":
-                    return TimeSpan.FromMinutes(10);
-                case "30m":
-                    return TimeSpan.FromMinutes(30);
-                case "1h":
-                    return TimeSpan.FromHours(1);
-                case "1d":
-                    return TimeSpan.FromDays(1);
-                case "1w":
-                    return TimeSpan.FromDays(7);
-                case "1mo":
-                    return TimeSpan.FromDays(30);
-                case "3mo":
-                    return TimeSpan.FromDays(90);
-                default:
-                    return TimeSpan.Zero;
-            }
-        }
         internal const String ImageResPrefix = "Loupedeck.TwitchPlugin.Icons._80x80.";
 
         public static void Trace(String line) => TwitchPlugin.PluginLog.Info("TW:" + line);
