@@ -7,6 +7,7 @@
     using System.Linq;
     using TwitchLib.Client.Models;
     using TwitchLib.Api.Helix.Models.Chat.ChatSettings;
+    using TwitchLib.Client.Extensions;
 
     public partial class TwitchProxy : IDisposable
     {
@@ -25,23 +26,43 @@
 
         public JoinedChannel GetOwnChannel() => this._twitchClient.GetJoinedChannel(this._userInfo.Login);
 
-        private void UpdateOwnChannelSettings(ChatSettings newSettings) 
+        private void UpdateOwnChannelSettings(Action<ChatSettings> changeAction) 
             => this.EnsureOnOwnChannel(() => 
             {
+                var newSettings = new ChatSettings()
+                {
+                    EmoteMode = this.IsEmoteOnly,
+                    SubscriberMode = this.IsSubOnly,
+                    FollowerMode = this.IsFollowersOnly,
+                    SlowMode = this.IsSlowMode
+                };
+
+                if ( newSettings.FollowerMode )
+                {
+                    newSettings.FollowerModeDuration = (Int32) this.FollowersOnly.TotalMinutes;
+                }
+
+                if ( newSettings.SlowMode )
+                {
+                    newSettings.SlowModeWaitTime = this.SlowMode;
+                }
+
+                changeAction(newSettings);
+
                 var _ = this.twitchApi.Helix.Chat.UpdateChatSettingsAsync(this._userInfo.Id, this._userInfo.Id, newSettings).Result;
                 
             });
 
         /* Emotes-only */
         public Boolean IsEmoteOnly { get; private set; } = false;
-        private void AppSetEmotesOnly(Boolean status) => this.UpdateOwnChannelSettings(new ChatSettings() { EmoteMode = status });
+        private void AppSetEmotesOnly(Boolean status) => this.UpdateOwnChannelSettings((s) => s.EmoteMode = status);
         public void AppEmotesOnlyOn() => this.AppSetEmotesOnly(true);
         public void AppEmotesOnlyOff() => this.AppSetEmotesOnly(false);
         public void AppToggleEmotesOnly() => this.AppSetEmotesOnly(!this.IsEmoteOnly);
 
         /* Subscribers-only */
         public Boolean IsSubOnly { get; private set; } = false;
-        private void AppSetSubscribersOnly(Boolean status) => this.UpdateOwnChannelSettings(new ChatSettings() { SubscriberMode = status });
+        private void AppSetSubscribersOnly(Boolean status) => this.UpdateOwnChannelSettings((s) => s.SubscriberMode = status);
         public void AppToggleSubscribersOnly() => this.AppSetSubscribersOnly(!this.IsSubOnly);
         public void AppSubscribersOnlyOn() => this.AppSetSubscribersOnly(true);
         public void AppSubscribersOnlyOff() => this.AppSetSubscribersOnly(false);
@@ -50,8 +71,9 @@
         public static TimeSpan FollowersModeOff = TimeSpan.MinValue;
         public TimeSpan FollowersOnly { get; private set; } = TwitchProxy.FollowersModeOff;
         public Boolean IsFollowersOnly => this.FollowersOnly != TwitchProxy.FollowersModeOff;
-        /* IMPORTANT:  New API takes duration in minutes, while old one was using seconds. We translate it right here*/        
-        private void AppSetFollowersOnly(Boolean status, Int32 duration = 0) => this.UpdateOwnChannelSettings(status ? new ChatSettings() { FollowerMode = true, FollowerModeDuration = (int) duration/60 }: new ChatSettings() { FollowerMode = false });
+        /* IMPORTANT:  New API takes duration in minutes, while old one was using seconds. We translate it right here*/
+        private void AppSetFollowersOnly(Boolean status, Int32 duration = 0) => this.UpdateOwnChannelSettings((s) => { s.FollowerMode = status; if (status) { s.FollowerModeDuration = (Int32)duration / 60; }  });
+
         public void AppFollowersOnlyOn(Int32 duration) => this.AppSetFollowersOnly(true, duration);
         public void AppFollowersOnlyOff() => this.AppSetFollowersOnly(false);
 
@@ -60,8 +82,7 @@
         /* Slow mode */
         public Int32 SlowMode { get; private set; } = 0;
         public Boolean IsSlowMode => this.SlowMode != 0;
-        private void AppSetSlowMode(Boolean status, Int32 duration = 0) => this.UpdateOwnChannelSettings(status ? new ChatSettings() { SlowMode = true, SlowModeWaitTime = duration } : new ChatSettings() { SlowMode = false });
-
+        private void AppSetSlowMode(Boolean status, Int32 duration = 0) => this.UpdateOwnChannelSettings((s) => { s.SlowMode = status; if (status) { s.SlowModeWaitTime = duration; } });
         public void AppToggleSlowMode(Int32 duration = 0) => this.AppSetSlowMode(!(this.IsSlowMode || duration == 0));
 
         public void AppSlowModeOn(Int32 duration) => this.AppSetSlowMode(true, duration);
