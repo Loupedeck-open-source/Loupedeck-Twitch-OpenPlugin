@@ -59,10 +59,11 @@
             TwitchPlugin.Proxy.Error += this.OnError;
             TwitchPlugin.Proxy.IncorrectLogin += this.OnIncorrectLogin;
 
-            TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOn += this.UpdateFollowersBitmap;
+            /*TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOn += this.UpdateFollowersBitmap;
             TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOff += this.UpdateFollowersBitmap;
             TwitchPlugin.Proxy.AppEvtChatSlowModeOn+= this.UpdateSlowModeBitmap;
             TwitchPlugin.Proxy.AppEvtChatSlowModeOff += this.UpdateSlowModeBitmap;
+            */
 
             this._twitchAccount.LoginRequested += this.OnTwitchAccountOnLoginRequested;
             this._twitchAccount.LogoutRequested += this.OnTwitchAccountOnLogoutRequested;
@@ -80,10 +81,11 @@
             TwitchPlugin.Proxy.Error -= this.OnError;
             TwitchPlugin.Proxy.IncorrectLogin -= this.OnIncorrectLogin;
 
-            TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOn -= this.UpdateFollowersBitmap;
+            /*TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOn -= this.UpdateFollowersBitmap;
             TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOff -= this.UpdateFollowersBitmap;
             TwitchPlugin.Proxy.AppEvtChatSlowModeOn -= this.UpdateSlowModeBitmap;
             TwitchPlugin.Proxy.AppEvtChatSlowModeOff -= this.UpdateSlowModeBitmap;
+            */
 
             this._twitchAccount.LoginRequested -= this.OnTwitchAccountOnLoginRequested;
             this._twitchAccount.LogoutRequested -= this.OnTwitchAccountOnLogoutRequested;
@@ -195,29 +197,6 @@
             return base.TryGetActionImage(actionName, actionParameter, imageSize, out bitmap);
         }
 
-        protected override Boolean TryGetActionLibraryImage(String actionName, String actionParameter,
-            out String imageFileName, out String imageLibraryName)
-        {
-            imageLibraryName = null;
-            switch (actionName)
-            {
-                case "ToggleFollowersOnly":
-                    imageFileName = TwitchPlugin.Proxy.FollowersOnly == TimeSpan.Zero
-                        ? "Twitch/TwitchFollowerChatToggle.png"
-                        : "Twitch/TwitchFollowerChat.png";
-                    return true;
-                case "ToggleSlowChat":
-                    imageFileName = TwitchPlugin.Proxy.SlowMode == 0
-                        ? "Twitch/TwitchSlowChatToggle.png"
-                        : "Twitch/TwitchSlowChat.png";
-                
-                    return true;
-                default:
-                    imageFileName = null;
-                    return false;
-            }
-        }
-
         private void ProcessCommand(String commandName, String parameter)
         {
             switch (commandName)
@@ -281,40 +260,13 @@
             this._twitchAccount.ReportLogout(); //So that we force login for the next time
         }
 
-        private void OnError(Object sender, Exception e)
-        {
-            TwitchPlugin.PluginLog.Warning(e,$"TwitchAPI OnError received: {e.Message}");
+        private void OnError(Object sender, Exception e) => TwitchPlugin.PluginLog.Warning(e, $"TwitchAPI OnError received: {e.Message}");
 
-
-            /*
-             *          FIXME: Should we set a Plugin state here instead? 
-             *          
-                        var webSocketException = e as System.Net.WebSockets.WebSocketException;
-                        if (webSocketException?.ErrorCode == null && !(e is WebException))
-                        {
-                            return;
-                        }
-                        switch (webSocketException?.ErrorCode)
-                        {
-                            case 258:
-                                this._connectionCheckTimer.Stop();
-                                this.RequestRefreshAccessToken(this._twitchAccount.RefreshToken);
-                                break;
-                        }
-            */
-        }
-
-        private void OnConnectionError(Object sender, String message)
-        {
-            TwitchPlugin.PluginLog.Info($"Connection Error: {message}");
-        }
-
-        private void OnDisconnected(Object sender, EventArgs e)
-        {
-            TwitchPlugin.PluginLog.Info("OnDisconnected");
-            //Note that, except for the Forced logout and closing te application 
-            //User never disconnects from Twitch. 
-        }
+        private void OnConnectionError(Object sender, String message) => TwitchPlugin.PluginLog.Info($"Connection Error: {message}");
+        
+        //Note that, except for the Forced logout and closing te application 
+        //User never disconnects from Twitch. 
+        private void OnDisconnected(Object sender, EventArgs e) => TwitchPlugin.PluginLog.Info("OnDisconnected");
 
         // How many times we got 'incorrect login' error - this might be an error related to re-authentication
         // Reset on successful connect
@@ -488,6 +440,8 @@
         internal BitmapImage GetPluginCommandImage(PluginImageSize imageSize, String imagePath, String text = null, Boolean textSelected = false) =>
             this.BuildImage(imageSize, ImageResPrefix + imagePath, text, textSelected).ToImage();
 
+        internal BitmapImage GetPluginCommandImage(Int32 imageWidth, Int32 _, String imagePath, String text = null, Boolean textSelected = false) =>
+                    this.BuildImage(imageWidth > 75 ? PluginImageSize.Width90 : PluginImageSize.Width60, ImageResPrefix + imagePath, text, textSelected).ToImage();
 
     }
 }

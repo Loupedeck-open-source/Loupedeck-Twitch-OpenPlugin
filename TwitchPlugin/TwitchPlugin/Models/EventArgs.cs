@@ -5,8 +5,9 @@
 
     public class TimeSpanEventArg : EventArgs
     {
-        public Int32 SlowModeRange { get; private set; }
-        public TimeSpanEventArg(Int32 seconds) => this.SlowModeRange = seconds;
+        public Int32 Seconds { get; private set; }
+        public TimeSpanEventArg(Int32 seconds) => this.Seconds = seconds;
+        public TimeSpanEventArg(TimeSpan ts) => this.Seconds = (Int32)ts.TotalSeconds;
     }
 
     public class AccessTokenReceivedEventArgs : EventArgs
@@ -16,7 +17,6 @@
         public String Login { get; protected set; }
         public String UserId { get; protected set; }
         public Int32 ExpiresIn { get; protected set; }
-
 
         public AccessTokenReceivedEventArgs(String accessToken, String refreshToken, ValidateAccessTokenResponse validation)
         {
@@ -65,8 +65,4 @@
             this.RefreshToken = _refreshToken;
         }
     }
-
-
-
-
 }

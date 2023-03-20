@@ -1,50 +1,62 @@
-﻿using System.Collections.Generic;
-using System;
-
-namespace Loupedeck.TwitchPlugin.Actions
+﻿namespace Loupedeck.TwitchPlugin.Actions
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
    
-    internal class ChatFollowersCommand : PluginMultistateDynamicCommand
+    internal class ChatFollowersCommand : MultistateActionEditorCommand
     {
-        private static readonly KeyValuePair<System.TimeSpan, String>[] FollowModeTimeSpans =
-                new KeyValuePair<System.TimeSpan, String>[] {
-                        new KeyValuePair<System.TimeSpan, String>(new System.TimeSpan( 0, 0, 0,0), "0 (All)"),
-                        new KeyValuePair<System.TimeSpan, String>(new System.TimeSpan( 0, 0,10,0), "10 Minutes"),
-                        new KeyValuePair<System.TimeSpan, String>(new System.TimeSpan( 0, 0,30,0), "30 Minutes"),
-                        new KeyValuePair<System.TimeSpan, String>(new System.TimeSpan( 0, 1, 0,0), "1 Hour"),
-                        new KeyValuePair<System.TimeSpan, String>(new System.TimeSpan( 1, 0, 0,0), "1 Day"),
-                        new KeyValuePair<System.TimeSpan, String>(new System.TimeSpan( 7, 0, 0,0), "1 Week"),
-                        new KeyValuePair<System.TimeSpan, String>(new System.TimeSpan(30, 0, 0,0), "1 Month"),
-                        new KeyValuePair<System.TimeSpan, String>(new System.TimeSpan(90, 0, 0,0), "3 Months")
-                };
+        private class FollowModeDescriptor
+        {
+            public Int32 durationSeconds;
+            public String longName;
+            public String shortName;
+            public FollowModeDescriptor(System.TimeSpan duration, String name, String sname)
+            {
+                this.durationSeconds = (Int32)duration.TotalSeconds;
+                this.longName = name;
+                this.shortName = sname;
+            }
+        }
 
+        private static readonly FollowModeDescriptor[] FollowModeTimeSpans =
+        {
+            new FollowModeDescriptor(new System.TimeSpan( 0, 0, 0,0), "0 Minutes (All)","all"),
+            new FollowModeDescriptor(new System.TimeSpan( 0, 0,10,0), "10 Minutes","10m"),
+            new FollowModeDescriptor(new System.TimeSpan( 0, 0,30,0), "30 Minutes","30m"),
+            new FollowModeDescriptor(new System.TimeSpan( 0, 1, 0,0), "1 Hour","1h"),
+            new FollowModeDescriptor(new System.TimeSpan( 1, 0, 0,0), "1 Day","1d"),
+            new FollowModeDescriptor(new System.TimeSpan( 7, 0, 0,0), "1 Week","1w"),
+            new FollowModeDescriptor(new System.TimeSpan(30, 0, 0,0), "1 Month","1mo"),
+            new FollowModeDescriptor(new System.TimeSpan(90, 0, 0,0), "3 Months","3mo")
+        };
+        
         private readonly String ImgOn = "TwitchFollowerChat.png";
         private readonly String ImgOff = "TwitchFollowerChatToggle.png";
+
+        private const Int32 STATE_OFF = 0;
+        private const Int32 STATE_ON = 1;
+
+
+        private const String FollowModeDurationControl = "followModeDuration";
+        private const String OnStateName = "ON";
+        private const String OffStateName = "OFF";
 
         public ChatFollowersCommand()
         {
             this.DisplayName = "Chat Followers-Only";
             this.Description = "Turns Followers-Only mode for Twitch Chat on/off";
             this.GroupName = "Chat Followers-Only";
-            this.Name = "ChatFollowers";
+            this.Name = "ToggleFollowersOnlyList";
 
-            this.AddState("Off", "Followers-only chat off");
-            this.AddState("On", "Followers-only chat on");
+            this.ActionEditor.AddControl(
+                           new ActionEditorListbox(name: FollowModeDurationControl, labelText: "Followers for:"));
 
-            //var n = 0;
-            //foreach(var item in ChatFollowersCommand.FollowModeTimeSpans)
-            for(var i=0;i< ChatFollowersCommand.FollowModeTimeSpans.Count();i++)
-            {
-                var item = ChatFollowersCommand.FollowModeTimeSpans[i];
-                var key = item.Key.TotalSeconds.ToString();
+            this.ActionEditor.ListboxItemsRequested += this.OnActionEditorListboxItemsRequested;
+            this.ActionEditor.ControlValueChanged += this.OnActionEditorControlValueChanged;
 
-                var p = this.AddParameter( key, key!="0" ?  $"Minimum {item.Value} followers-only chat" : "Followers-only chat (all followers)", this.GroupName); 
-                p.Description = key != "0" ? $"Enables Followers-only mode for the chat for users who followed for at least {item.Value}" : $"Enables Followers-only mode for the chat for all followers";
-                this.SetCurrentState(key, 0);
-            }
+            this.AddState(OffStateName, "Followers-only chat off");
+            this.AddState(OnStateName, "Followers-only chat on");
         }
 
         protected override Boolean OnLoad()
@@ -53,8 +65,7 @@ namespace Loupedeck.TwitchPlugin.Actions
             TwitchPlugin.Proxy.AppDisconnected += this.OnAppDisconnected;
             TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOn += this.OnAppFollowersOn;
             TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOff += this.OnAppFollowersOff;
-
-            this.IsEnabled = false;
+        
             return true;
         }
 
@@ -68,72 +79,114 @@ namespace Loupedeck.TwitchPlugin.Actions
             return true;
         }
 
-        private void OnAppConnected(Object sender, EventArgs e) => this.IsEnabled = true;
-
-        private void OnAppDisconnected(Object sender, EventArgs e) => this.IsEnabled = false;
-
-        private void OnAppFollowersOn(Object sender, TimeSpanEventArg e)
+        private void OnAppConnected(Object sender, EventArgs e)
         {
-            //When SLOW mode is on, we set ALL parameters to ON!
-            //Setting all parameters except for the one e.SlowMode to off
-            foreach (var p in this.GetParameters())
-            {
-                this.SetCurrentState(p.Name, /*(p.Name != e.SlowModeRange.ToString()) ? 0 :*/ 1);
-            }
-            this.ParametersChanged();
+
         }
 
-        private void OnAppFollowersOff(Object sender, EventArgs e)
+        private void OnAppDisconnected(Object sender, EventArgs e)
         {
-            foreach (var p in this.GetParameters())
-            {
-                this.SetCurrentState(p.Name, 0);
-            }
-            this.ParametersChanged();
+
         }
 
+        private UInt32 GetSeconds(TimeSpan t) =>(UInt32)t.TotalSeconds;
 
-        protected override BitmapImage GetCommandImage(String actionParameter, PluginImageSize imageSize)
+        private void SetStateForItem(Int32 stateIndex, TimeSpanEventArg e)
         {
-            String itemText = null;
-
-            if( UInt32.TryParse(actionParameter, out var val))
+            try
             {
-                var searchTimeSpan = TimeSpan.FromSeconds(val);
-                var result = Array.Find(ChatFollowersCommand.FollowModeTimeSpans, x => x.Key == searchTimeSpan);
-                if (result.Key != default)
+                //Reconstructing ActionParameter to set the state for specific action
+                var d = new Dictionary<String, String>
                 {
-                    itemText = result.Value;
+                    [FollowModeDurationControl] = e.Seconds.ToString()
+                };
+                this.SetCurrentState(new ActionEditorActionParameters(d), stateIndex);
+            }
+            catch (Exception ex)
+            {
+                TwitchPlugin.PluginLog.Error(ex, $"Followers: Error setting state  {stateIndex} for {e.Seconds} time value");
+            }
+        }
+
+        private void OnAppFollowersOn(Object sender, TimeSpanEventArg e) => this.SetStateForItem(STATE_ON, e);
+
+        private void OnAppFollowersOff(Object sender, TimeSpanEventArg e) => this.SetStateForItem(STATE_OFF, e);
+
+        private void OnActionEditorControlValueChanged(Object sender, ActionEditorControlValueChangedEventArgs e)
+        {
+            if (!e.ControlName.EqualsNoCase(FollowModeDurationControl))
+            {
+                //Wazzat? 
+                return;
+            }
+
+            var item = Array.Find(ChatFollowersCommand.FollowModeTimeSpans, x => x.durationSeconds.ToString() == e.ActionEditorState.GetControlValue(FollowModeDurationControl));
+            if (!Object.Equals(item, default(FollowModeDescriptor)))
+            {
+                e.ActionEditorState.SetDisplayName($"Followers-Only {item.longName}");
+            }
+        }
+
+        private void OnActionEditorListboxItemsRequested(Object sender, ActionEditorListboxItemsRequestedEventArgs e)
+        {
+            if (!e.ControlName.EqualsNoCase(FollowModeDurationControl))
+            {
+                //Wazzat? 
+                return;
+            }
+
+            for (var i = 0; i < ChatFollowersCommand.FollowModeTimeSpans.Count(); i++)
+            {
+                var item = ChatFollowersCommand.FollowModeTimeSpans[i];
+                e.AddItem(item.durationSeconds.ToString(), $"{item.longName}", $"Followers can chat if they followed you at least {item.longName}");
+            }
+        }
+        protected override BitmapImage GetCommandImage(ActionEditorActionParameters actionParameters, Int32 stateIndex, Int32 imageWidth, Int32 imageHeight)
+        {
+            var isOn = stateIndex == 1; //TwitchPlugin.Proxy.IsFollowersOnly
+            var iconFileName = isOn ? this.ImgOn : this.ImgOff;
+
+            var iconText = "N/A";
+
+            if (actionParameters.TryGetString(FollowModeDurationControl, out var modeDuration))
+            {
+                //To get short name
+                var item = Array.Find(ChatFollowersCommand.FollowModeTimeSpans, x => x.durationSeconds.ToString() == modeDuration);
+                if (!Object.Equals(item, default(FollowModeDescriptor)))
+                {
+                    iconText = $"{item.shortName}";
                 }
             }
-            return (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageSize, TwitchPlugin.Proxy.IsFollowersOnly ? this.ImgOn : this.ImgOff, itemText);
+
+            return (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageWidth, imageHeight, iconFileName, iconText, iconFileName == this.ImgOn);
         }
-        
 
-
-        protected override void RunCommand(String actionParameter)
+        protected override Boolean RunCommand(ActionEditorActionParameters actionParameters)
         {
-            //NB: Follow mode act differently WRT parameters: When Slow mode is on,
-            //all parameters are On, pressing on it would switch it off
-            if (TwitchPlugin.Proxy.IsFollowersOnly)
+            if (!actionParameters.TryGetString(FollowModeDurationControl, out var modeDuration) || String.IsNullOrEmpty(modeDuration))
             {
-                TwitchPlugin.Proxy.AppToggleFollowersOnly(0);
+                TwitchPlugin.Trace($"FollowerMode : Cannot parse action parameters ");
+                return false;
             }
-            else //We switch on according to what was pressed
+
+            //We only switch off what we previously switched on. 
+            if (TwitchPlugin.Proxy.IsFollowersOnly && modeDuration == this.GetSeconds(TwitchPlugin.Proxy.FollowersOnly).ToString())
             {
-                if (Int32.TryParse(actionParameter, out var modeDuration))
+                TwitchPlugin.Proxy.AppFollowersOnlyOff();
+            }
+            else /* if(!TwitchPlugin.Proxy.IsFollowersOnly ) */ //We switch on according to what was pressed, even if already in the mode
+            {
+                if (Int32.TryParse(modeDuration, out var seconds))
                 {
-                    TwitchPlugin.Proxy.AppToggleFollowersOnly(modeDuration);
+                    TwitchPlugin.Trace($"FollowerMode : Turning on with {seconds} s");
+                    TwitchPlugin.Proxy.AppFollowersOnlyOn(seconds);
                 }
                 else
                 {
-                    TwitchPlugin.Trace($"FollowierMode : Cannot parse action param {actionParameter}");
+                    TwitchPlugin.Trace($"FollowerMode : Cannot parse action {modeDuration}");
                 }
             }
-
-
+            return true;
         }
-
     }
-}
-        
+}       
