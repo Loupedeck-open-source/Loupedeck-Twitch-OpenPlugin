@@ -25,6 +25,7 @@
             "user:edit",
             "chat:edit",
             "chat:read",
+            "moderator:manage:chat_settings",
             "channel:moderate",
             "user:edit:broadcast",
             "channel_commercial", // this is scope from twitch API v5. Rfc does not currently allow to use /commercial command without it. This will probably brake when twitch drop support for API v5.
