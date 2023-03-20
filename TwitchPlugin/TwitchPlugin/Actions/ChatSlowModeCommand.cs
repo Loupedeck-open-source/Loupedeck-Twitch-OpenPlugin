@@ -6,27 +6,24 @@
 
     internal class ChatSlowModeCommand : MultistateActionEditorCommand
     {
-        private static readonly Int32[] SlowModeTimeSpans = new Int32[] { 1, 3, 5, 10, 15, 30, 60, 120 };
+        private static readonly Int32[] SlowModeTimeSpans = new Int32[] {  3, 5, 10, 20, 30, 60, 120 };
 
         private static readonly Dictionary<String, String> _allSlowCommandsActionParameters = new Dictionary<String, String>()
         {
-            [SlowModeDurationControl] = "1",
             [SlowModeDurationControl] = "3",
             [SlowModeDurationControl] = "5",
             [SlowModeDurationControl] = "10",
-            [SlowModeDurationControl] = "15",
+            [SlowModeDurationControl] = "20",
             [SlowModeDurationControl] = "30",
             [SlowModeDurationControl] = "60",
             [SlowModeDurationControl] = "120"
         };
-
 
         private readonly String ImgOn  = "TwitchSlowChat.png";
         private readonly String ImgOff = "TwitchSlowChatToggle.png";
 
         private const Int32 STATE_OFF = 0;
         private const Int32 STATE_ON  = 1;
-        
 
         private const String SlowModeDurationControl = "slowModeDuration";
         private const String OnStateName = "ON";
@@ -70,11 +67,9 @@
 
         private void OnAppConnected(Object sender, EventArgs e)
         { }
-        //=> this.IsEnabled = true;
 
         private void OnAppDisconnected(Object sender, EventArgs e)
         { }
-        //=> this.IsEnabled = false;
 
         private void SetStateForItem(Int32 stateIndex, TimeSpanEventArg e)
         {
