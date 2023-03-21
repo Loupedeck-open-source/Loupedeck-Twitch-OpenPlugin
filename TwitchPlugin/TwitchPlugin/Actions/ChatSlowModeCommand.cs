@@ -105,20 +105,10 @@
         }
 
         private void OnActionEditorListboxItemsRequested(Object sender, ActionEditorListboxItemsRequestedEventArgs e)
-        {
-            if (!e.ControlName.EqualsNoCase(SlowModeDurationControl))
-            {
-                //Wazzat? 
-                return;
-            }
-
-            for (var i = 0; i < ChatSlowModeCommand.SlowModeTimeSpans.Length; i++)
-            {
-                var ts = ChatSlowModeCommand.SlowModeTimeSpans[i].ToString();
-                e.AddItem(ts, $"{ts} sec slow mode", $"Enables Slow mode for {ChatSlowModeCommand.SlowModeTimeSpans[i]} sec");
-            }
-        }
-
+            => ActionHelpers.FillListBox(e, SlowModeDurationControl, 
+                () => Array.ForEach(ChatSlowModeCommand.SlowModeTimeSpans, 
+                    (item) => e.AddItem(item.ToString(), $"{item} sec slow mode", $"Enables Slow mode for {item} sec")));
+        
         protected override BitmapImage GetCommandImage(ActionEditorActionParameters actionParameters, Int32 stateIndex, Int32 imageWidth, Int32 imageHeight)
         {
             var isOn = stateIndex == 1; //TwitchPlugin.Proxy.IsSlowMode

@@ -128,19 +128,10 @@
         }
 
         private void OnActionEditorListboxItemsRequested(Object sender, ActionEditorListboxItemsRequestedEventArgs e)
-        {
-            if (!e.ControlName.EqualsNoCase(FollowModeDurationControl))
-            {
-                //Wazzat? 
-                return;
-            }
-
-            for (var i = 0; i < ChatFollowersCommand.FollowModeTimeSpans.Count(); i++)
-            {
-                var item = ChatFollowersCommand.FollowModeTimeSpans[i];
-                e.AddItem(item.durationSeconds.ToString(), $"{item.longName}", $"Followers can chat if they followed you at least {item.longName}");
-            }
-        }
+            => ActionHelpers.FillListBox(e, FollowModeDurationControl, 
+                () => Array.ForEach(ChatFollowersCommand.FollowModeTimeSpans, 
+                    (item)  => e.AddItem(name: item.durationSeconds.ToString(), displayName:  $"{item.longName}", description: $"Followers can chat if they followed you at least {item.longName}")));
+        
         protected override BitmapImage GetCommandImage(ActionEditorActionParameters actionParameters, Int32 stateIndex, Int32 imageWidth, Int32 imageHeight)
         {
             var isOn = stateIndex == 1; //TwitchPlugin.Proxy.IsFollowersOnly

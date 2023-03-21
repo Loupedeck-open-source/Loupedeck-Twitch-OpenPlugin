@@ -65,33 +65,30 @@
 
         private void OnActionEditorListboxItemsRequested(Object sender, ActionEditorListboxItemsRequestedEventArgs e)
         {
-            if (e.ControlName.EqualsNoCase(ToggleActionSelector))
-            {
-                foreach (var v in UniversalStateSwitch._toggles.Values)
-                {
-                    e.AddItem(v.Name, v.DisplayName, v.Description);
-                    this.Plugin.Log.Info($"AE: Adding ('{v.Name}','{v.DisplayName}','{v.Description}')");
-                }
-            }
-            else if (e.ControlName.EqualsNoCase(ToggleStateSelector))
-            {
-                var selectedAction = e.ActionEditorState.GetControlValue(ToggleActionSelector);
+            ActionHelpers.FillListBox(e, ToggleActionSelector,
+                    () => {
+                        foreach (var v in UniversalStateSwitch._toggles.Values)
+                        {
+                            e.AddItem(v.Name, v.DisplayName, v.Description);
+                            this.Plugin.Log.Info($"AE: Adding ('{v.Name}','{v.DisplayName}','{v.Description}')");
+                        }
+                    });
 
-                // We get the control value from the 1st list box and generate the list accordingly
-                if (!String.IsNullOrEmpty(selectedAction) && this.TryGetToggle(selectedAction, out var v))
-                { 
-                    e.AddItem(v.OffStateName, v.OffStateName, "Turns Off");
-                    e.AddItem(v.OnStateName, v.OnStateName, "Turns On");
-                }
-                else
-                {
-                    this.Plugin.Log.Error($"AE: Cannot get toggle for control value for action {selectedAction}");
-                }
-            }
-            else
-            {
-                this.Plugin.Log.Error($"Unexpected control name '{e.ControlName}'");
-            }
+            ActionHelpers.FillListBox(e, ToggleStateSelector,
+                    () => {
+                        var selectedAction = e.ActionEditorState.GetControlValue(ToggleActionSelector);
+
+                        // We get the control value from the 1st list box and generate the list accordingly
+                        if (!String.IsNullOrEmpty(selectedAction) && this.TryGetToggle(selectedAction, out var v))
+                        {
+                            e.AddItem(v.OffStateName, v.OffStateName, "Turns Off");
+                            e.AddItem(v.OnStateName, v.OnStateName, "Turns On");
+                        }
+                        else
+                        {
+                            this.Plugin.Log.Error($"AE: Cannot get toggle for control value for action {selectedAction}");
+                        }
+                    });
         }
 
         private void OnAppConnected(Object sender, EventArgs e)
