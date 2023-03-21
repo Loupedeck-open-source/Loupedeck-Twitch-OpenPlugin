@@ -12,9 +12,6 @@
 
     <actions>
         <group displayName="">
-            <command name="RunCommercialList" displayName="Run Commercial" profileActionType="list;Duration (seconds):" description="Runs a commercial during your Twitch stream (Partners only)"/>
-        </group>
-        <group displayName="">
 			<command name="ResetSettings" displayName="Reset Settings" description="Resets chat settings to default."/>
 		</group>
       <group displayName="SendChatMessage">
@@ -24,19 +21,8 @@
 
     <layouts>
         <layout name="Main">
-			<!--
-            <command name="ToggleSlowChat" otherControls="AllButtons"/>
-            <command name="ToggleFollowersOnly" otherControls="AllButtons" />
-			-->
-			<command name="RunCommercial" otherControls="AllButtons" />
             <command name="SendChatMessage" displayName="AllButtons"/>
-			<!--
-			
-            <command name="ToggleSlowChatList" displayName="AllButtons"/>
-            <command name="ToggleFollowersOnlyList" displayName="AllButtons"/>
-			-->
-            <command name="RunCommercialList" displayName="AllButtons"/>
-        </layout>
+			</layout>
     </layouts>
 
 </configuration>

@@ -116,66 +116,12 @@
 
         }
 
-        public override PluginActionParameter[] GetActionParameterValues(String actionName)
-        {
-            PluginActionParameter[] GetListParameters(String displayName, Dictionary<String, String> values)
-            {
-                var parameters = new List<PluginActionParameter>();
-                parameters.AddRange(values.Select(value =>
-                    new PluginActionParameter(value.Key, $"{this.Localization.GetString(displayName)} {this.Localization.GetString(value.Value)}", "Twitch")));
-                return parameters.ToArray();
-            }
-
-            switch (actionName)
-            {
-                case "RunCommercialList":
-                    return GetListParameters("Run Commercial", DisplayNameMaps.RunCommercialNamesMap);
-                default:
-                    return Array.Empty<PluginActionParameter>();
-            }
-        }
-
-        protected override Boolean TryGetActionImage(String actionName, String actionParameter, PluginImageSize imageSize,
-            out BitmapImage bitmap)
-        {
-            BitmapImage GetViewersBitmapWithText(String imageName, String buttonText, Int32 fontSize = 15, BitmapColor? color = null)
-            {
-                using (var bitmapBuilder = new BitmapBuilder(imageSize))
-                {
-                    bitmapBuilder.DrawLibraryImage(imageName, imageSize);
-
-                    if (!String.IsNullOrEmpty(buttonText))
-                    {
-                        bitmapBuilder.DrawText(buttonText, 10, 30, 60, 60, color: color, fontSize: fontSize); //, fontSize: 9);
-                    }
-
-                    return bitmapBuilder.ToImage();
-                }
-            }
-
-            switch (actionName)
-            {
-                case "RunCommercialList" when !String.IsNullOrEmpty(actionParameter):
-                    bitmap = GetViewersBitmapWithText("Twitch/TwitchAd1.png",
-                        this.Localization.GetString(DisplayNameMaps.RunCommercialNamesMap[actionParameter]), 11);
-                    return true;
-            }
-
-            return base.TryGetActionImage(actionName, actionParameter, imageSize, out bitmap);
-        }
-
         private void ProcessCommand(String commandName, String parameter)
         {
             switch (commandName)
             {
                 case "SendChatMessage":
                     TwitchPlugin.Proxy.SendMessage(parameter);
-                    break;
-                case "RunCommercial":
-                    TwitchPlugin.Proxy.SendMessage(".commercial");
-                    break;
-                case "RunCommercialList":
-                    TwitchPlugin.Proxy.SendMessage($".commercial {parameter}");
                     break;
                 case "ResetSettings":
                     TwitchPlugin.Proxy.ResetAllSettings();
