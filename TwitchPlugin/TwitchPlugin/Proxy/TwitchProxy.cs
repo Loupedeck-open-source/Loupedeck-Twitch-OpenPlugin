@@ -179,15 +179,9 @@
             }
         }
 
+        public void AppClearChat() => this.EnsureOnOwnChannel(() => this.twitchApi.Helix.Moderation.DeleteChatMessagesAsync(this._userInfo.Id, this._userInfo.Id).ConfigureAwait(false));
 
-        public void AppClearChat()
-        {
-            if (this.IsConnected)
-            {
-                Helpers.TryExecuteSafe(() => this._twitchClient.ClearChat(this._userInfo.Login));
-            }
-        }
-
+      
         public void ResetAllSettings()
         {
             TwitchPlugin.PluginLog.Info("Resetting all settings to default");
