@@ -7,7 +7,7 @@
     using System.Linq;
     using TwitchLib.Client.Models;
     using TwitchLib.Api.Helix.Models.Chat.ChatSettings;
-    using TwitchLib.Client.Extensions;
+    using TwitchLib.Api.Helix.Models.Ads;
 
     public partial class TwitchProxy : IDisposable
     {
@@ -84,7 +84,6 @@
         public Boolean IsSlowMode => this.SlowMode != 0;
         private void AppSetSlowMode(Boolean status, Int32 duration = 0) => this.UpdateOwnChannelSettings((s) => { s.SlowMode = status; if (status) { s.SlowModeWaitTime = duration; } });
         public void AppToggleSlowMode(Int32 duration = 0) => this.AppSetSlowMode(!(this.IsSlowMode || duration == 0));
-
         public void AppSlowModeOn(Int32 duration) => this.AppSetSlowMode(true, duration);
         public void AppSlowModeOff() => this.AppSetSlowMode(false);
 
@@ -152,7 +151,21 @@
                }
             }
         }
-         
+
+        public Boolean AppRunCommercial(Int32 seconds = 30)
+        {
+            if( !Loupedeck.Helpers.TryExecuteFunc(() => { return this.twitchApi.Helix.Ads.StartCommercialAsync(new StartCommercialRequest() { BroadcasterId = this._userInfo.Id, Length = seconds }).Result; }, out var res))
+            {
+                TwitchPlugin.PluginLog.Error("Error executing RunCommercial");
+                return false;
+            }
+            TwitchPlugin.PluginLog.Info($"Executed RunCommercial for {res.Length}");
+            return true;
+
+        }
+
+
+
         private void UpdateChannelStatusFromTwitch(OnChannelStateChangedArgs a)
         {
             ChannelState state = a?.ChannelState;
