@@ -65,6 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\RunCommercial.cs" />
     <Compile Include="Actions\ChatFollowersCommand.cs" />
     <Compile Include="Actions\ChatSlowModeCommand.cs" />
     <Compile Include="Actions\ClearChatCommand.cs" />
@@ -85,6 +86,7 @@
       <DependentUpon>Localization.resx</DependentUpon>
     </Compile>
     <Compile Include="Logging\Logger.cs" />
+    <Compile Include="Models\ActionHelpers.cs" />
     <Compile Include="Models\TwitchPluginConfig.cs" />
     <Compile Include="Models\EventArgs.cs" />
     <Compile Include="Models\UserInfo.cs" />
