@@ -2,16 +2,10 @@
 {
     using Microsoft.Extensions.Logging;
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using TwitchLib.Api;
     using TwitchLib.Api.Core;
     using TwitchLib.Api.Core.Exceptions;
-    using TwitchLib.Api.Helix.Models.Chat.ChatSettings;
     using TwitchLib.Client;
-    using TwitchLib.Client.Events;
-    using TwitchLib.Client.Extensions;
-    using TwitchLib.Client.Interfaces;
     using TwitchLib.Communication.Clients;
     using TwitchLib.Communication.Events;
     using TwitchLib.Communication.Interfaces;
