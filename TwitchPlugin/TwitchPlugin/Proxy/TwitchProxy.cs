@@ -2,10 +2,14 @@
 {
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     using TwitchLib.Api;
     using TwitchLib.Api.Core;
     using TwitchLib.Api.Core.Exceptions;
     using TwitchLib.Client;
+    using TwitchLib.Client.Events;
     using TwitchLib.Communication.Clients;
     using TwitchLib.Communication.Events;
     using TwitchLib.Communication.Interfaces;
@@ -207,7 +211,7 @@
 #if DEBUG
         public Dictionary<String,String> GetDebugCommands()
         {
-            String[] strings = new[] 
+            var strings = new[] 
                 { 
                     "AccessTokenExpired",
                     "OnTwitchClientDisconnected",
