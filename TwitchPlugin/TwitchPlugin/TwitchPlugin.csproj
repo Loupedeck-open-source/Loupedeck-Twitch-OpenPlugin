@@ -65,7 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Actions\RunCommercial.cs" />
+    <Compile Include="Actions\RunCommercialCmd.cs" />
     <Compile Include="Actions\ChatFollowersCommand.cs" />
     <Compile Include="Actions\ChatSlowModeCommand.cs" />
     <Compile Include="Actions\ClearChatCommand.cs" />

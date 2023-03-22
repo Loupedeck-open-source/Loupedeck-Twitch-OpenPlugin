@@ -156,10 +156,10 @@
         {
             if( !Loupedeck.Helpers.TryExecuteFunc(() => { return this.twitchApi.Helix.Ads.StartCommercialAsync(new StartCommercialRequest() { BroadcasterId = this._userInfo.Id, Length = seconds }).Result; }, out var res))
             {
-                TwitchPlugin.PluginLog.Error("Error executing RunCommercial");
+                TwitchPlugin.PluginLog.Error("Error executing RunCommercialCmd");
                 return false;
             }
-            TwitchPlugin.PluginLog.Info($"Executed RunCommercial for {res.Length}");
+            TwitchPlugin.PluginLog.Info($"Executed RunCommercialCmd for {res.Length}");
             return true;
 
         }

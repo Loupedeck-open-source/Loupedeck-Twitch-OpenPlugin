@@ -6,7 +6,7 @@
     {
         public ChatSubToggleCmd()
                         : base(
-                            name: "ToggleSubsOnly",
+                            name: "ChatSubToggleCmd",
                             displayName: "Chat Subscribers-Only",
                             description: "Toggles chat Subscribers-only mode",
                             groupName: "",

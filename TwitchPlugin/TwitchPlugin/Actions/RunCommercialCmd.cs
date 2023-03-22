@@ -2,14 +2,14 @@
 {
     using System;
 
-    public class RunCommercial : ActionEditorCommand
+    public class RunCommercialCmd : ActionEditorCommand
     {
         private const String ListboxControlName = "dura";
         private const String IMGAction = "TwitchAd1.png";
 
         private static readonly Int32[] _durations = { 30, 60, 90, 120, 150, 180 };
 
-        public RunCommercial()
+        public RunCommercialCmd()
         {
             this.DisplayName = "Run Commercial";
             this.Description = "Runs a commercial during your Twitch stream (Partners only)";
