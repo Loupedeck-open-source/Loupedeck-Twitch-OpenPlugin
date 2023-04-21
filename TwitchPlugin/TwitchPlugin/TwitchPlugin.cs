@@ -1,25 +1,14 @@
 ﻿namespace Loupedeck.TwitchPlugin
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Net;
-    using TwitchLib.Api.Auth;
-    using static Loupedeck.TwitchPlugin.AuthenticationServer;
-    using TwitchLib.Api.Helix.Models.Entitlements;
-    using TwitchLib.Client.Events;
 
     public class TwitchPlugin : Plugin
     {
-        private const Int32 DefaultConnectionTimerInterval = 5000;
         public static PluginLogFile PluginLog { get; private set; } = null;
 
         private const String ConfigFileName = "twitch-v2.json";
 
         private readonly PluginPreferenceAccount _twitchAccount;
-
-        private TwitchPluginConfig _pluginConfig = null;
-
         public override Boolean UsesApplicationApiOnly => true;
         public override Boolean HasNoApplication => true;
 
@@ -59,17 +48,13 @@
             TwitchPlugin.Proxy.Error += this.OnError;
             TwitchPlugin.Proxy.IncorrectLogin += this.OnIncorrectLogin;
 
-            /*TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOn += this.UpdateFollowersBitmap;
-            TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOff += this.UpdateFollowersBitmap;
-            TwitchPlugin.Proxy.AppEvtChatSlowModeOn+= this.UpdateSlowModeBitmap;
-            TwitchPlugin.Proxy.AppEvtChatSlowModeOff += this.UpdateSlowModeBitmap;
-            */
-
             this._twitchAccount.LoginRequested += this.OnTwitchAccountOnLoginRequested;
             this._twitchAccount.LogoutRequested += this.OnTwitchAccountOnLogoutRequested;
             
             this.ServiceEvents.OnlineFileContentReceived += this.OnOnlineFileContentReceived;
             this.ServiceEvents.GetOnlineFileContent(ConfigFileName);
+
+            //Intialization will contunue in this.OnOnlineFileContentReceived
         }
 
         public override void Unload()
@@ -80,12 +65,6 @@
             TwitchPlugin.Proxy.ConnectionError -= this.OnConnectionError;
             TwitchPlugin.Proxy.Error -= this.OnError;
             TwitchPlugin.Proxy.IncorrectLogin -= this.OnIncorrectLogin;
-
-            /*TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOn -= this.UpdateFollowersBitmap;
-            TwitchPlugin.Proxy.AppEvtChatFollowersOnlyOff -= this.UpdateFollowersBitmap;
-            TwitchPlugin.Proxy.AppEvtChatSlowModeOn -= this.UpdateSlowModeBitmap;
-            TwitchPlugin.Proxy.AppEvtChatSlowModeOff -= this.UpdateSlowModeBitmap;
-            */
 
             this._twitchAccount.LoginRequested -= this.OnTwitchAccountOnLoginRequested;
             this._twitchAccount.LogoutRequested -= this.OnTwitchAccountOnLogoutRequested;
@@ -228,7 +207,6 @@
 
                 pluginConfig = JsonHelpers.DeserializeObject<TwitchPluginConfig>(json);
 
-                this._pluginConfig = pluginConfig;
             }
             else
             {
@@ -239,8 +217,8 @@
             TwitchPlugin.Proxy.SetPorts(pluginConfig.Ports);
 
 
-            if (!String.IsNullOrEmpty(this._twitchAccount.AccessToken) &&
-                !String.IsNullOrEmpty(this._twitchAccount.RefreshToken)
+            if (!String.IsNullOrEmpty(this._twitchAccount.AccessToken)
+                && !String.IsNullOrEmpty(this._twitchAccount.RefreshToken)
                 && TwitchProxy.ValidateAccessToken(this._twitchAccount.AccessToken, out var validationResp) )
             {
                 TwitchPlugin.PluginLog.Info("Attempting to connect with cached tokens");
@@ -248,10 +226,10 @@
             }
             else
             {
+                TwitchPlugin.PluginLog.Info($"TwitchPlugin OnOnlineFileContentReceived: token not cached or invalid. Need manual relogin. Access Token Empty={String.IsNullOrEmpty(this._twitchAccount.AccessToken)}. Refresh Token Empty={String.IsNullOrEmpty(this._twitchAccount.RefreshToken)}");
                 this._twitchAccount.AccessToken = null;
                 this._twitchAccount.RefreshToken = null;
-                
-                TwitchPlugin.PluginLog.Info("TwitchPlugin OnOnlineFileContentReceived: token not cached or invalid. Need manual relogin");
+             
                 this._twitchAccount.ReportLogout();
             }
         }

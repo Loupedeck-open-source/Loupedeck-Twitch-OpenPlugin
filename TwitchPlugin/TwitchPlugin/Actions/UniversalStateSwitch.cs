@@ -117,11 +117,11 @@
                 this.Plugin.Log.Info($"Running command '{toggleValue}'");
                 if(toggleValue == item.OffStateName)
                 {
-                    item.SwitchOff();
+                    item.SwitchOn();
                 }
                 else
                 {
-                    item.SwitchOn();
+                    item.SwitchOff();
                 }
             }
             return true;
