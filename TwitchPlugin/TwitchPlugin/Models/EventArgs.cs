@@ -46,9 +46,9 @@
             ERROR_MISC
         };
 
-        public TokenError errorCode { get; private set; }
+        public TokenError ErrorCode { get; private set; }
 
-        public AccessTokenErrorEventArgs(TokenError _err) => this.errorCode = _err;
+        public AccessTokenErrorEventArgs(TokenError _err) => this.ErrorCode = _err;
 
     }
 
@@ -57,12 +57,10 @@
     {
         public String UserName { get; private set; }
         public String AccessToken { get; private set; }
-        public String RefreshToken { get; private set; }
-        public TokensUpdatedEventArg(String _userName, String _accessToken, String _refreshToken)
+        public TokensUpdatedEventArg(String _userName, String _accessToken)
         {
             this.UserName = _userName;
             this.AccessToken = _accessToken;
-            this.RefreshToken = _refreshToken;
         }
     }
 }
