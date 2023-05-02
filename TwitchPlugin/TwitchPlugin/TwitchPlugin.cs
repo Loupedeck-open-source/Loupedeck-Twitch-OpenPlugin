@@ -166,10 +166,10 @@
             TwitchPlugin.PluginLog.Info($"Twitch tokens updated for : {args.UserName}");
 
             this._twitchAccount.AccessToken = args.AccessToken;
-            this._twitchAccount.RefreshToken = args.RefreshToken;
+            this._twitchAccount.RefreshToken = "";
 
             //Setting status and storing the tokens
-            this._twitchAccount.ReportLogin(args.UserName, this._twitchAccount.AccessToken, this._twitchAccount.RefreshToken);
+            this._twitchAccount.ReportLogin(args.UserName, this._twitchAccount.AccessToken, "");
         }
 
         private void OnConnected(Object sender, EventArgs e)
@@ -218,7 +218,6 @@
 
 
             if (!String.IsNullOrEmpty(this._twitchAccount.AccessToken)
-                && !String.IsNullOrEmpty(this._twitchAccount.RefreshToken)
                 && TwitchProxy.ValidateAccessToken(this._twitchAccount.AccessToken, out var validationResp) )
             {
                 TwitchPlugin.PluginLog.Info("Attempting to connect with cached tokens");
