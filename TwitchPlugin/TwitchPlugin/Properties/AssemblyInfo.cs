@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Loupedeck Oy")]
 [assembly: AssemblyProduct("Loupedeck")]
-[assembly: AssemblyCopyright("Copyright © 2022 Loupedeck Oy")]
+[assembly: AssemblyCopyright("Copyright © 2023 Loupedeck Oy")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
