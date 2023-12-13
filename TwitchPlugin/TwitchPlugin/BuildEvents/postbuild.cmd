@@ -42,11 +42,11 @@ set "DLL_LIST=%TARGET_FILENAME_DLL%"
 
 for %%A in ("%TARGET_DIR%\*.dll") do (
     if "%%~nxA" neq "%TARGET_FILENAME_DLL%" (
-	    set "DLL_LIST=!DLL_LIST! %%~nxA "
+	    set "DLL_LIST=!DLL_LIST! %%~nxA"
     )
 )
 
-echo Merging DLLs into one ALL DLLS: %DLL_LIST%
+echo Merging DLLs into one: %DLL_LIST%
 cd %TARGET_DIR% 
 %ILMERGE% /lib:"%ProgramFiles(x86)%"\Loupedeck\Loupedeck2\ /out:..\%TARGET_FILENAME_DLL%  %DLL_LIST%
 if errorlevel 1 goto :error
