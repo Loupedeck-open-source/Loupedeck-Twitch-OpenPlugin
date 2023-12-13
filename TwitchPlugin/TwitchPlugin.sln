@@ -1,33 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29911.84
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchPlugin", "TwitchPlugin\TwitchPlugin.csproj", "{52F89C82-8F87-4E46-AA85-434E56227148}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLib.Api", "TwitchLib\TwitchLib.Api\TwitchLib.Api\TwitchLib.Api.csproj", "{4311A398-1FAC-4EC2-8D12-8A6B854E80C8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLib.Client", "TwitchLib\TwitchLib.Client\TwitchLib.Client\TwitchLib.Client.csproj", "{DF8B5BFD-5759-4E5D-9503-B5B05781CBF5}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLib.Client.Enums", "TwitchLib\TwitchLib.Client\TwitchLib.Client.Enums\TwitchLib.Client.Enums.csproj", "{67FD8A2F-E7E8-4B66-B85D-ACC4D38C7236}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLib.Client.Models", "TwitchLib\TwitchLib.Client\TwitchLib.Client.Models\TwitchLib.Client.Models.csproj", "{578BF6A5-9D74-44E2-839C-3A99AE47D09B}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLib.Api.Core", "TwitchLib\TwitchLib.Api\TwitchLib.Api.Core\TwitchLib.Api.Core.csproj", "{01290E81-0074-4B12-902B-5227B468D9D2}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLib.Api.Core.Interfaces", "TwitchLib\TwitchLib.Api\TwitchLib.Api.Core.Interfaces\TwitchLib.Api.Core.Interfaces.csproj", "{4791B576-380C-4B1D-BBFA-8D5F22CEC81F}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLib.Api.Core.Models", "TwitchLib\TwitchLib.Api\TwitchLib.Api.Core.Models\TwitchLib.Api.Core.Models.csproj", "{C9C93CA6-0AB3-4A16-ABF1-CD31CBB34EB0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLib.Api.Helix", "TwitchLib\TwitchLib.Api\TwitchLib.Api.Helix\TwitchLib.Api.Helix.csproj", "{510B17AD-C44B-4E47-B45E-B48F9E78B3B3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLib.Api.Helix.Models", "TwitchLib\TwitchLib.Api\TwitchLib.Api.Helix.Models\TwitchLib.Api.Helix.Models.csproj", "{11B7736D-EB3E-4169-9781-A78B50FDB532}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TwitchLib", "TwitchLib", "{1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLib.Api.Core.Enums", "TwitchLib\TwitchLib.Api\TwitchLib.Api.Core.Enums\TwitchLib.Api.Core.Enums.csproj", "{AEE0DD3D-0014-4EA1-A275-48B5EB31A2E4}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLib.Communication", "TwitchLib\TwitchLib.Communication\src\TwitchLib.Communication\TwitchLib.Communication.csproj", "{DE0D3CFB-BAD5-4264-8EA7-E2472FCD621D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,66 +15,9 @@ Global
 		{52F89C82-8F87-4E46-AA85-434E56227148}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52F89C82-8F87-4E46-AA85-434E56227148}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52F89C82-8F87-4E46-AA85-434E56227148}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4311A398-1FAC-4EC2-8D12-8A6B854E80C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4311A398-1FAC-4EC2-8D12-8A6B854E80C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4311A398-1FAC-4EC2-8D12-8A6B854E80C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4311A398-1FAC-4EC2-8D12-8A6B854E80C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DF8B5BFD-5759-4E5D-9503-B5B05781CBF5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DF8B5BFD-5759-4E5D-9503-B5B05781CBF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DF8B5BFD-5759-4E5D-9503-B5B05781CBF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DF8B5BFD-5759-4E5D-9503-B5B05781CBF5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{67FD8A2F-E7E8-4B66-B85D-ACC4D38C7236}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{67FD8A2F-E7E8-4B66-B85D-ACC4D38C7236}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{67FD8A2F-E7E8-4B66-B85D-ACC4D38C7236}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{67FD8A2F-E7E8-4B66-B85D-ACC4D38C7236}.Release|Any CPU.Build.0 = Release|Any CPU
-		{578BF6A5-9D74-44E2-839C-3A99AE47D09B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{578BF6A5-9D74-44E2-839C-3A99AE47D09B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{578BF6A5-9D74-44E2-839C-3A99AE47D09B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{578BF6A5-9D74-44E2-839C-3A99AE47D09B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{01290E81-0074-4B12-902B-5227B468D9D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{01290E81-0074-4B12-902B-5227B468D9D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{01290E81-0074-4B12-902B-5227B468D9D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{01290E81-0074-4B12-902B-5227B468D9D2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4791B576-380C-4B1D-BBFA-8D5F22CEC81F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4791B576-380C-4B1D-BBFA-8D5F22CEC81F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4791B576-380C-4B1D-BBFA-8D5F22CEC81F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4791B576-380C-4B1D-BBFA-8D5F22CEC81F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C9C93CA6-0AB3-4A16-ABF1-CD31CBB34EB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C9C93CA6-0AB3-4A16-ABF1-CD31CBB34EB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C9C93CA6-0AB3-4A16-ABF1-CD31CBB34EB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C9C93CA6-0AB3-4A16-ABF1-CD31CBB34EB0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{510B17AD-C44B-4E47-B45E-B48F9E78B3B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{510B17AD-C44B-4E47-B45E-B48F9E78B3B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{510B17AD-C44B-4E47-B45E-B48F9E78B3B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{510B17AD-C44B-4E47-B45E-B48F9E78B3B3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{11B7736D-EB3E-4169-9781-A78B50FDB532}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{11B7736D-EB3E-4169-9781-A78B50FDB532}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{11B7736D-EB3E-4169-9781-A78B50FDB532}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{11B7736D-EB3E-4169-9781-A78B50FDB532}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AEE0DD3D-0014-4EA1-A275-48B5EB31A2E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AEE0DD3D-0014-4EA1-A275-48B5EB31A2E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AEE0DD3D-0014-4EA1-A275-48B5EB31A2E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AEE0DD3D-0014-4EA1-A275-48B5EB31A2E4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DE0D3CFB-BAD5-4264-8EA7-E2472FCD621D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DE0D3CFB-BAD5-4264-8EA7-E2472FCD621D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DE0D3CFB-BAD5-4264-8EA7-E2472FCD621D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DE0D3CFB-BAD5-4264-8EA7-E2472FCD621D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{4311A398-1FAC-4EC2-8D12-8A6B854E80C8} = {1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}
-		{DF8B5BFD-5759-4E5D-9503-B5B05781CBF5} = {1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}
-		{67FD8A2F-E7E8-4B66-B85D-ACC4D38C7236} = {1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}
-		{578BF6A5-9D74-44E2-839C-3A99AE47D09B} = {1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}
-		{01290E81-0074-4B12-902B-5227B468D9D2} = {1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}
-		{4791B576-380C-4B1D-BBFA-8D5F22CEC81F} = {1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}
-		{C9C93CA6-0AB3-4A16-ABF1-CD31CBB34EB0} = {1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}
-		{510B17AD-C44B-4E47-B45E-B48F9E78B3B3} = {1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}
-		{11B7736D-EB3E-4169-9781-A78B50FDB532} = {1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}
-		{AEE0DD3D-0014-4EA1-A275-48B5EB31A2E4} = {1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}
-		{DE0D3CFB-BAD5-4264-8EA7-E2472FCD621D} = {1C1EAA7E-CD79-4A12-928E-C5E287D1F6CB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {93A0A5BC-AAF9-4683-9190-AA4DE9CB618F}

@@ -11,6 +11,8 @@
     <AssemblyName>TwitchPlugin</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
     <BaseIntermediateOutputPath>$(SolutionDir)..\obj\</BaseIntermediateOutputPath>
@@ -43,25 +45,22 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=5.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.5.0.0\lib\net461\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="PluginApi">
       <HintPath>..\..\..\..\Program Files (x86)\Loupedeck\Loupedeck2\PluginApi.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -111,7 +110,6 @@
     <EmbeddedResource Include="Localization\TwitchPlugin_xx-XX.xliff" />
     <EmbeddedResource Include="Localization\TwitchPlugin_de-DE.xliff" />
     <EmbeddedResource Include="Localization\TwitchPlugin_ja-JP.xliff" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="metadata\Icon16x16.png" />
@@ -164,53 +162,132 @@
     <None Include="metadata\LoupedeckPackage.yaml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TwitchLib\TwitchLib.Api\TwitchLib.Api.Core.Enums\TwitchLib.Api.Core.Enums.csproj">
-      <Project>{aee0dd3d-0014-4ea1-a275-48b5eb31a2e4}</Project>
-      <Name>TwitchLib.Api.Core.Enums</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TwitchLib\TwitchLib.Api\TwitchLib.Api.Core.Interfaces\TwitchLib.Api.Core.Interfaces.csproj">
-      <Project>{4791b576-380c-4b1d-bbfa-8d5f22cec81f}</Project>
-      <Name>TwitchLib.Api.Core.Interfaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TwitchLib\TwitchLib.Api\TwitchLib.Api.Core.Models\TwitchLib.Api.Core.Models.csproj">
-      <Project>{c9c93ca6-0ab3-4a16-abf1-cd31cbb34eb0}</Project>
-      <Name>TwitchLib.Api.Core.Models</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TwitchLib\TwitchLib.Api\TwitchLib.Api.Core\TwitchLib.Api.Core.csproj">
-      <Project>{01290e81-0074-4b12-902b-5227b468d9d2}</Project>
-      <Name>TwitchLib.Api.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TwitchLib\TwitchLib.Api\TwitchLib.Api.Helix.Models\TwitchLib.Api.Helix.Models.csproj">
-      <Project>{11b7736d-eb3e-4169-9781-a78b50fdb532}</Project>
-      <Name>TwitchLib.Api.Helix.Models</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TwitchLib\TwitchLib.Api\TwitchLib.Api.Helix\TwitchLib.Api.Helix.csproj">
-      <Project>{510b17ad-c44b-4e47-b45e-b48f9e78b3b3}</Project>
-      <Name>TwitchLib.Api.Helix</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TwitchLib\TwitchLib.Api\TwitchLib.Api\TwitchLib.Api.csproj">
-      <Project>{4311a398-1fac-4ec2-8d12-8a6b854e80c8}</Project>
-      <Name>TwitchLib.Api</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TwitchLib\TwitchLib.Client\TwitchLib.Client.Enums\TwitchLib.Client.Enums.csproj">
-      <Project>{67fd8a2f-e7e8-4b66-b85d-acc4d38c7236}</Project>
-      <Name>TwitchLib.Client.Enums</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TwitchLib\TwitchLib.Client\TwitchLib.Client.Models\TwitchLib.Client.Models.csproj">
-      <Project>{578bf6a5-9d74-44e2-839c-3a99ae47d09b}</Project>
-      <Name>TwitchLib.Client.Models</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TwitchLib\TwitchLib.Client\TwitchLib.Client\TwitchLib.Client.csproj">
-      <Project>{df8b5bfd-5759-4e5d-9503-b5b05781cbf5}</Project>
-      <Name>TwitchLib.Client</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TwitchLib\TwitchLib.Communication\src\TwitchLib.Communication\TwitchLib.Communication.csproj">
-      <Project>{de0d3cfb-bad5-4264-8ea7-e2472fcd621d}</Project>
-      <Name>TwitchLib.Communication</Name>
-    </ProjectReference>
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces">
+      <Version>8.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection">
+      <Version>8.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
+      <Version>8.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging">
+      <Version>8.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
+      <Version>8.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Options">
+      <Version>8.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Primitives">
+      <Version>8.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NETCore.Platforms">
+      <Version>7.0.4</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.3</Version>
+    </PackageReference>
+    <PackageReference Include="System.Buffers">
+      <Version>4.5.1</Version>
+    </PackageReference>
+    <PackageReference Include="System.Diagnostics.DiagnosticSource">
+      <Version>8.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.IO">
+      <Version>4.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Memory">
+      <Version>4.5.5</Version>
+    </PackageReference>
+    <PackageReference Include="System.Net.Http">
+      <Version>4.3.4</Version>
+    </PackageReference>
+    <PackageReference Include="System.Numerics.Vectors">
+      <Version>4.5.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Runtime">
+      <Version>4.3.1</Version>
+    </PackageReference>
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe">
+      <Version>6.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Security.Cryptography.Algorithms">
+      <Version>4.3.1</Version>
+    </PackageReference>
+    <PackageReference Include="System.Security.Cryptography.Encoding">
+      <Version>4.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Security.Cryptography.Primitives">
+      <Version>4.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Security.Cryptography.X509Certificates">
+      <Version>4.3.2</Version>
+    </PackageReference>
+    <PackageReference Include="System.Text.Encodings.Web">
+      <Version>8.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Text.Json">
+      <Version>8.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Threading.Tasks.Extensions">
+      <Version>4.5.4</Version>
+    </PackageReference>
+    <PackageReference Include="System.ValueTuple">
+      <Version>4.5.0</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib">
+      <Version>3.5.3</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.Api">
+      <Version>3.9.0</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.Api.Core">
+      <Version>3.9.0</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.Api.Core.Enums">
+      <Version>3.9.0</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.Api.Core.Interfaces">
+      <Version>3.9.0</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.Api.Core.Models">
+      <Version>3.9.0</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.Api.Helix">
+      <Version>3.9.0</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.Api.Helix.Models">
+      <Version>3.9.0</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.Client">
+      <Version>3.3.1</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.Client.Enums">
+      <Version>3.3.1</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.Client.Models">
+      <Version>3.3.1</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.Communication">
+      <Version>1.0.6</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.EventSub.Core">
+      <Version>2.5.1</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.EventSub.Websockets">
+      <Version>0.4.0</Version>
+    </PackageReference>
+    <PackageReference Include="TwitchLib.PubSub">
+      <Version>3.2.6</Version>
+    </PackageReference>
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent Condition="$(OS) == 'Windows_NT'">call "$(ProjectDir)BuildEvents\postbuild.cmd" "$(ProjectDir)" "$(TargetDir)"</PostBuildEvent>
     <PostBuildEvent Condition="$(OS) != 'Windows_NT'">sh "$(ProjectDir)BuildEvents\postbuild" "$(ProjectDir)" "$(TargetDir)"</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>call "$(ProjectDir)BuildEvents\postbuild.cmd" "$(ProjectDir)" "$(TargetDir)" "$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
 </Project>
