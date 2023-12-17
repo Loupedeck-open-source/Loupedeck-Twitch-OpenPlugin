@@ -55,7 +55,8 @@ namespace Loupedeck.TwitchPlugin
 
             //Say, 20 seconds before an actual expiration.
             //One hour interval
-            this._refreshTokenTimer.Interval = 3600 * 1000;
+            this._refreshTokenTimer.Interval = (expiresIn < 3600.0 ? expiresIn: 3600.0 ) * 1000;
+
             this._refreshTokenTimer.AutoReset = true; //Repeatedly fire
 
             //1000 * (expiresIn > WakeupBeforeExpirationS ? (expiresIn - WakeupBeforeExpirationS) : WakeupBeforeExpirationS);
