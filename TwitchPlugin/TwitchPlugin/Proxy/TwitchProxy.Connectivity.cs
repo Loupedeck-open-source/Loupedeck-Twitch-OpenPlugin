@@ -66,21 +66,15 @@ namespace Loupedeck.TwitchPlugin
 
             this._refreshTokenTimer.Enabled = true;
 
-            TwitchPlugin.PluginLog.Info($"Refresh timer enabled: {this._refreshTokenTimer.Enabled}, Token expires in {expiresIn}");
+            TwitchPlugin.PluginLog.Info($"Token timer enabled: {this._refreshTokenTimer.Enabled},  Timer will fire in {this._refreshTokenTimer.Interval / 1000}s Token expires in {expiresIn}");
         }
 
         private void OnRefreshTokenTimerTick(Object _, Object _1)
         {
-            //We validate the token hourly. If it's less than an hour to expire, we refresh it.
-            if (! TwitchProxy.ValidateAccessToken(this.twitchApi.Settings.AccessToken, out var validationResp))
-            {
-                this.TokenExpiresIn = 0;
-            }
-            else
-            { 
-                this.TokenExpiresIn = validationResp.ExpiresIn;
-            }
+            TwitchPlugin.PluginLog.Info($"In Token Refresh timer");
+            this.TokenExpiresIn = ! TwitchProxy.ValidateAccessToken(this.twitchApi.Settings.AccessToken, out var validationResp) ? 0 : validationResp.ExpiresIn;
 
+            //We validate the token hourly. If it's less than an hour to expire, we refresh it.
             if (this.TokenExpiresIn < 3600)
             {
                 TwitchPlugin.PluginLog.Info("It's time to refresh the token!");

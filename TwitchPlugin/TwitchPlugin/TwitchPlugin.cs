@@ -122,13 +122,13 @@
         private void OnTwitchAccountOnLogoutRequested(Object sender, EventArgs e)
         {
             //User pressed 'Logout' 
-            TwitchPlugin.PluginLog.Info("TwitchPlugin OnTwitchAccountOnLogoutRequested");
+            TwitchPlugin.PluginLog.Info("TwitchPlugin OnTwitchAccountOnLogoutRequested: Reporting Logout");
 
             // Asking Proxy here.,
             this._twitchAccount.AccessToken = null;
             this._twitchAccount.RefreshToken = null;
             TwitchPlugin.Proxy.Disconnect();
-
+            TwitchPlugin.PluginLog.Info("Reporting Logout");
             this._twitchAccount.ReportLogout(); //So that we force login for the next time
         }
 
@@ -153,7 +153,7 @@
            
             if( this._incorrectLoginErrors++ > MaxIncorrectLoginErrors )
             {
-                TwitchPlugin.PluginLog.Warning("Too many incorrect logins. Reporting disconnect");
+                TwitchPlugin.PluginLog.Warning("Too many incorrect logins. Reporting logout");
 
                 // Incorrect login happens when we are re-authenticating. Let's ignore it for now
                 this._twitchAccount.ReportLogout();
@@ -174,7 +174,7 @@
 
         private void OnConnected(Object sender, EventArgs e)
         {
-            TwitchPlugin.PluginLog.Info($"Connected to twitch client");
+            TwitchPlugin.PluginLog.Info($"Connected to twitch client. Reporting Login.");
             this._incorrectLoginErrors = 0;
             this.OnPluginStatusChanged(Loupedeck.PluginStatus.Normal, "Connected!");
         }
@@ -229,7 +229,7 @@
                 TwitchPlugin.PluginLog.Info($"TwitchPlugin OnOnlineFileContentReceived: token not cached or invalid. Need manual relogin. Access Token Empty={String.IsNullOrEmpty(this._twitchAccount.AccessToken)}. Refresh Token Empty={String.IsNullOrEmpty(this._twitchAccount.RefreshToken)}");
                 this._twitchAccount.AccessToken = null;
                 this._twitchAccount.RefreshToken = null;
-             
+                TwitchPlugin.PluginLog.Info("Reporting Logout");
                 this._twitchAccount.ReportLogout();
             }
         }
