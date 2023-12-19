@@ -275,7 +275,7 @@ namespace Loupedeck.TwitchPlugin
             this.DisposeTwitchClient();
         }
 
-        private void RequestRefreshAccessToken(String inRefreshToken=null)
+        public void RequestRefreshAccessToken(String inRefreshToken=null)
         {
             var refreshToken = String.IsNullOrEmpty(inRefreshToken) ? this.RefreshToken : inRefreshToken;
 

@@ -179,6 +179,14 @@
             this.OnPluginStatusChanged(Loupedeck.PluginStatus.Normal, "Connected!");
         }
 
+        private void CleanTockensAndLogout()
+        {
+            this._twitchAccount.AccessToken = null;
+            this._twitchAccount.RefreshToken = null;
+            TwitchPlugin.PluginLog.Info("Reporting Logout");
+            this._twitchAccount.ReportLogout();
+        }
+
         private void OnOnlineFileContentReceived(Object sender, OnlineFileContentReceivedEventArgs e)
         {
             TwitchPlugin.PluginLog.Info("TwitchPlugin OnOnlineFileContentReceived");
@@ -216,7 +224,6 @@
             TwitchPlugin.Proxy.SetClientCredentials(pluginConfig.ClientId, pluginConfig.ClientSecret);
             TwitchPlugin.Proxy.SetPorts(pluginConfig.Ports);
 
-
             if (!String.IsNullOrEmpty(this._twitchAccount.AccessToken)
                 && !String.IsNullOrEmpty(this._twitchAccount.RefreshToken)
                 && TwitchProxy.ValidateAccessToken(this._twitchAccount.AccessToken, out var validationResp) )
@@ -226,11 +233,24 @@
             }
             else
             {
-                TwitchPlugin.PluginLog.Info($"TwitchPlugin OnOnlineFileContentReceived: token not cached or invalid. Need manual relogin. Access Token Empty={String.IsNullOrEmpty(this._twitchAccount.AccessToken)}. Refresh Token Empty={String.IsNullOrEmpty(this._twitchAccount.RefreshToken)}");
-                this._twitchAccount.AccessToken = null;
-                this._twitchAccount.RefreshToken = null;
-                TwitchPlugin.PluginLog.Info("Reporting Logout");
-                this._twitchAccount.ReportLogout();
+                if (!String.IsNullOrEmpty(this._twitchAccount.RefreshToken))
+                {
+                    try
+                    {
+                        // Validation of the access token has failed. Lets try to receive a new one.
+                        TwitchPlugin.Proxy.RequestRefreshAccessToken(this._twitchAccount.RefreshToken);
+                    }
+                    catch (InvalidAccessTokenException ex)
+                    {
+                        TwitchPlugin.PluginLog.Info(ex, $"TwitchPlugin Twitch: Failed to refresh token. Manual login is needed.");
+                        this.CleanTockensAndLogout();
+                    }
+                }
+                else
+                {
+                    TwitchPlugin.PluginLog.Info($"TwitchPlugin OnOnlineFileContentReceived: token not cached or invalid. Need manual relogin. Access Token Empty={String.IsNullOrEmpty(this._twitchAccount.AccessToken)}. Refresh Token Empty={String.IsNullOrEmpty(this._twitchAccount.RefreshToken)}");
+                    this.CleanTockensAndLogout();
+                }
             }
         }
 
