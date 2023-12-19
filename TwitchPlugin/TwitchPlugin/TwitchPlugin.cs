@@ -125,11 +125,10 @@
             TwitchPlugin.PluginLog.Info("TwitchPlugin OnTwitchAccountOnLogoutRequested: Reporting Logout");
 
             // Asking Proxy here.,
-            this._twitchAccount.AccessToken = null;
-            this._twitchAccount.RefreshToken = null;
+
             TwitchPlugin.Proxy.Disconnect();
             TwitchPlugin.PluginLog.Info("Reporting Logout");
-            this._twitchAccount.ReportLogout(); //So that we force login for the next time
+            this.CleanTokensAndLogout();
         }
 
         private void OnError(Object sender, Exception e) => TwitchPlugin.PluginLog.Warning(e, $"TwitchAPI OnError received: {e.Message}");
@@ -154,9 +153,7 @@
             if( this._incorrectLoginErrors++ > MaxIncorrectLoginErrors )
             {
                 TwitchPlugin.PluginLog.Warning("Too many incorrect logins. Reporting logout");
-
-                // Incorrect login happens when we are re-authenticating. Let's ignore it for now
-                this._twitchAccount.ReportLogout();
+                this.CleanTokensAndLogout();
             }
         }
 
@@ -179,7 +176,7 @@
             this.OnPluginStatusChanged(Loupedeck.PluginStatus.Normal, "Connected!");
         }
 
-        private void CleanTockensAndLogout()
+        private void CleanTokensAndLogout()
         {
             this._twitchAccount.AccessToken = null;
             this._twitchAccount.RefreshToken = null;
@@ -243,13 +240,13 @@
                     catch (InvalidAccessTokenException ex)
                     {
                         TwitchPlugin.PluginLog.Info(ex, $"TwitchPlugin Twitch: Failed to refresh token. Manual login is needed.");
-                        this.CleanTockensAndLogout();
+                        this.CleanTokensAndLogout();
                     }
                 }
                 else
                 {
                     TwitchPlugin.PluginLog.Info($"TwitchPlugin OnOnlineFileContentReceived: token not cached or invalid. Need manual relogin. Access Token Empty={String.IsNullOrEmpty(this._twitchAccount.AccessToken)}. Refresh Token Empty={String.IsNullOrEmpty(this._twitchAccount.RefreshToken)}");
-                    this.CleanTockensAndLogout();
+                    this.CleanTokensAndLogout();
                 }
             }
         }
