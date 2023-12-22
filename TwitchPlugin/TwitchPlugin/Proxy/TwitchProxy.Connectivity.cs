@@ -40,7 +40,6 @@ namespace Loupedeck.TwitchPlugin
         public Boolean IsConnected => (this._twitchClient?.IsConnected ?? false) == true;
 
         public EventHandler<(String, Exception)> IncorrectLogin { get; set; }
-        
         private String RefreshToken { get; set; } = null;
         private Int32 TokenExpiresIn { get; set; } = 0;
 
@@ -107,6 +106,9 @@ namespace Loupedeck.TwitchPlugin
 
         public void PreconfiguredConnect(PluginPreferenceAccount account, ValidateAccessTokenResponse validate) =>
             this.OnAccessTokenReceived(this, new AccessTokenReceivedEventArgs(account.AccessToken, account.RefreshToken, validate));
+
+        public void PreconfiguredConnect(String accessToken, String refreshToken, String userId, String login, Int32 expiresIn) =>
+            this.OnAccessTokenReceived(this, new AccessTokenReceivedEventArgs(accessToken, refreshToken, userId, login, expiresIn));
 
         private void OnAccessTokenReceived(Object sender, AccessTokenReceivedEventArgs arg)
         {
@@ -299,6 +301,10 @@ namespace Loupedeck.TwitchPlugin
 
                     this.twitchApi.Settings.AccessToken = result.AccessToken;
 
+                    if (TwitchProxy.ValidateAccessToken(this.twitchApi.Settings.AccessToken, out var validationResp))
+                    {
+                        this.PreconfiguredConnect(this.twitchApi.Settings.AccessToken, result.RefreshToken, validationResp.UserId, validationResp.Login, result.ExpiresIn);
+                    }
 
                     //See above the note about reconnection bug
                     this.DisconnectAndKillTwitchClient();
