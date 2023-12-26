@@ -79,6 +79,8 @@
         }
         private void DisposeTwitchClient()
         {
+            this._refreshTokenTimer.Enabled = false;
+
             this.StopViewersUpdateTimer(this, null);
 
             if (this._twitchClient == null)
@@ -124,6 +126,11 @@
             });
 
             this.OnTwitchAccessTokenExpired += this.OnAccessTokenExpired;
+
+            this._refreshTokenTimer = new System.Timers.Timer();
+            this._refreshTokenTimer.AutoReset = false;
+            this._refreshTokenTimer.Elapsed += (e, s) => this.OnRefreshTokenTimerTick(null, null);
+            this._refreshTokenTimer.Enabled = false;
 
             this._viewersUpdatetimer = new System.Timers.Timer();
             this._viewersUpdatetimer.AutoReset = true;
