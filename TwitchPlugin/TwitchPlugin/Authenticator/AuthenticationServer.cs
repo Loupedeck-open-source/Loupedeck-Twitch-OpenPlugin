@@ -69,7 +69,7 @@
                 this._listener.Prefixes.Clear();
                 this._listener.Prefixes.Add(this.RedirectUrl);
                 this._listener.Start();
-                this._listener.BeginGetContext(new AsyncCallback(this.ListenerCallback), this._listener);
+                this._listener.BeginGetContext(this.ListenerCallback, this._listener);
                 return true;
             }
             catch (Exception e)
@@ -91,11 +91,16 @@
                 TwitchPlugin.PluginLog.Error("Twitch AuthenticationServer: Error starting listener");
                 return false;
             }
-            /* we are using OAuth Implicit grant flow https://dev.twitch.tv/docs/authentication/getting-tokens-oidc/#oidc-implicit-grant-flow
-             * 1 - step authorization: we send all this and then wait for the response where code is sent
+            /* we are using OAuth Authorization code flow: https://dev.twitch.tv/docs/authentication/getting-tokens-oidc/#oidc-authorization-code-grant-flow 
+             * 
+             * 2-step authorization: 
+             * 1. We authorize the app (and listen on redirect URL for authorization dode (see ListenerCallback)
+             * 2. Once we receive the code, we form a HTTP Post Request and, if successful, receive all tokens (access,refresh and ID)
              */
 
-            var oauthUrl = "https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + TwitchPlugin.Proxy.twitchApi.Settings.ClientId + $"&redirect_uri={this.RedirectUrl}" + "&scope=" + String.Join("+", Scopes);
+            //Note: Using TwitchApi method to create oauth url did not work out because of scopes ... seems that no all the scopes needed are available there.
+                        
+            var oauthUrl = "https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=" + TwitchPlugin.Proxy.twitchApi.Settings.ClientId  + $"&redirect_uri={this.RedirectUrl}" + "&scope=" + String.Join("+", Scopes);
 
             try
             {
@@ -135,83 +140,75 @@
             }
 
         }
-        private void ListenerCallback(IAsyncResult result)
+        private async void ListenerCallback(IAsyncResult result)
         {
             TwitchPlugin.PluginLog.Info("Twitch AuthenticationServer ListenerCallback");
 
-            if (!this._listener.IsListening)
-            {
-                TwitchPlugin.PluginLog.Warning("Go to ListenerCallback but Listener is not listening ?");
-                this.OnTokenError.BeginInvoke(this, new AccessTokenErrorEventArgs(AccessTokenErrorEventArgs.TokenError.ERROR_MISC));
-                return;
-            }
-
-            var finalResponseString = AuthenticationServer.ResponseString;
-            var context = this._listener.EndGetContext(result);
-            var continueListening = false;
             try
             {
-                /* this is kind of response we are receiving 
-                 http://localhost:3000/
-                    #access_token=73gl5dipwta5fsfma3ia05woyffbp
-                    &id_token=eyJhbGciOiJSUzI1NiIsInR5cC6IkpXVCIsImtpZCI6IjEifQ...
-                    &scope=channel%253Amanage%253Apolls+channel%253Aread%253Apolls+openid
-                    &state=c3ab8aa609ea11e793ae92361f002671
-                    &token_type=bearer
-                 */
-
-                //Access token needs to be extracted from the fragment portion of the URI we receive to the server
-
-                if (context.Request.QueryString.AllKeys.Contains("error"))
+                if (!this._listener.IsListening)
                 {
-                    TwitchPlugin.PluginLog.Warning("Cannot get access token, possibly invalid client secret");
-                    finalResponseString = this.GetAuthErrorPage($"Error authenticating - \"{context.Request.QueryString["error"]}\" - \"{context.Request.QueryString["error_description"]}\"");
-                    this.OnTokenError?.BeginInvoke(this, new AccessTokenErrorEventArgs(AccessTokenErrorEventArgs.TokenError.ERROR_SECRET));
+                    TwitchPlugin.PluginLog.Warning("Go to ListenerCallback but Listener is not listening ?");
+                    this.OnTokenError.BeginInvoke(this, new AccessTokenErrorEventArgs(AccessTokenErrorEventArgs.TokenError.ERROR_MISC));
+                    return;
                 }
-                else if (!context.Request.QueryString.AllKeys.Contains("access_token"))
+
+                var finalResponseString = AuthenticationServer.ResponseString;
+                var context = this._listener.EndGetContext(result);
+
+                var code = context.Request.QueryString["code"];
+                
+                //FIXME !! For whatever reason, whenever GetAccessTokenFromCodeAsync is used, the response ('success') can no longer be written!
+                //var response = await TwitchPlugin.Proxy.twitchApi.Auth.GetAccessTokenFromCodeAsync(code, this._clientSecret, this._redirectUrl);
+
+                var client = new HttpClient();
+
+                var tokenResponse = await client.PostAsync(new Uri("https://id.twitch.tv/oauth2/token?"),
+                    new FormUrlEncodedContent(new[]
+                    {
+                        new KeyValuePair<String, String>("client_id", TwitchPlugin.Proxy.twitchApi.Settings.ClientId),
+                        new KeyValuePair<String, String>("client_secret", TwitchPlugin.Proxy.twitchApi.Settings.Secret),
+                        new KeyValuePair<String, String>("grant_type", "authorization_code"),
+                        new KeyValuePair<String, String>("redirect_uri", this.RedirectUrl),
+                        new KeyValuePair<String, String>("code", code)
+                    }));
+  
+                if (tokenResponse.StatusCode == HttpStatusCode.OK)
                 {
+                    var rawtext = await tokenResponse.Content.ReadAsStringAsync();
+                    var authResp = JsonConvert.DeserializeObject<AuthCodeResponse>(rawtext);
 
-                    //The browser is redirectred to localhost:3000/#access_toke=xxxxx   
-                    //But we are not receiving it here. We need to send javacript to 
-                    TwitchPlugin.PluginLog.Warning("Intial request received, creating redirect to get auth code");
-                    finalResponseString = $@"
-<html><head><body><script type ='text/javascript'>
-const urlParams = new URLSearchParams(window.location.hash.replace('#', '?'));
-const token = urlParams.get('access_token');
-const state = urlParams.get('state');
-if (token && token.length)
-    window.location.href = '{context.Request.Url}/redirect/?access_token=' + token + '&state=' + state;
-</script></body>";
-                    continueListening = true;
-                   
-                    this._listener.BeginGetContext(new AsyncCallback(this.ListenerCallback), this._listener);
-                }
-                else if (context.Request.QueryString.AllKeys.Contains("access_token"))
-                { 
-                    TwitchPlugin.PluginLog.Info($"Got access token: {context.Request.Url.AbsoluteUri}");
-                    var frag = context.Request.Url.AbsoluteUri;
-                    //Should be like access_token=73gl5dipwta5fsfma3ia05woyffbp
-                    var accessToken = frag.Split("&")[0].Split('=')[1];
-                    TwitchPlugin.PluginLog.Info($"Got access token: {accessToken}");
-
-                    if (TwitchProxy.ValidateAccessToken(accessToken, out var validationResp))
+                    if (TwitchProxy.ValidateAccessToken(authResp.AccessToken, out var validationResp))
                     {
                         //Note: Unless we are completely paranoid, we won't validate the scope here
-                        this.OnTokenReceived?.BeginInvoke(this, new AccessTokenReceivedEventArgs(accessToken, null, validationResp));
+                        this.OnTokenReceived?.BeginInvoke(this, new AccessTokenReceivedEventArgs(authResp.AccessToken, authResp.RefreshToken, validationResp));
                     }
                     else
                     {
                         TwitchPlugin.PluginLog.Warning("Token validation failed, ");
-                        finalResponseString = this.GetAuthErrorPage("Error validating access token");
-                        this.OnTokenError?.BeginInvoke(this, new AccessTokenErrorEventArgs(AccessTokenErrorEventArgs.TokenError.ERROR_MISC));
+                        finalResponseString = this.GetAuthErrorPage("Token validation failed");
+                        this.OnTokenError?.BeginInvoke(this, new AccessTokenErrorEventArgs(AccessTokenErrorEventArgs.TokenError.ERROR_VALIDATION));
                     }
                 }
                 else
                 {
-                    TwitchPlugin.PluginLog.Warning("authserver: Received no parameters. Continue listening");
-                    continueListening = true;
+                    TwitchPlugin.PluginLog.Warning("Cannot get access token, possibly invalid client secret");
+                    finalResponseString = this.GetAuthErrorPage("Invalid secret");
+                    this.OnTokenError?.BeginInvoke(this, new AccessTokenErrorEventArgs(AccessTokenErrorEventArgs.TokenError.ERROR_SECRET));
                 }
 
+                { 
+                    HttpListenerResponse response = context.Response;
+                    byte[] buffer = Encoding.UTF8.GetBytes(finalResponseString);
+                    response.ContentLength64 = buffer.Length;
+                    Stream output = response.OutputStream;
+                    output.Write(buffer, 0, buffer.Length);
+                    output.Close();
+                    //this.TokenReceived?.Invoke(this, response /*JsonConvert.DeserializeObject<AuthCodeResponse>(response)*/);
+                    //await writer.WriteAsync(finalResponseString);
+                }
+                TwitchPlugin.PluginLog.Info("Auth successful, existing callback");
+                
             }
             catch (Exception e)
             {
@@ -220,11 +217,9 @@ if (token && token.length)
             }
             finally
             {
-                this.WriteHttpResponse(context, finalResponseString);
-
                 try
                 {
-                    if (this._listener.IsListening && !continueListening)
+                    if (this._listener.IsListening)
                     {
                         this._listener.Stop();
                     }

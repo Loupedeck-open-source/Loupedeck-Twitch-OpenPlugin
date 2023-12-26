@@ -40,6 +40,47 @@ namespace Loupedeck.TwitchPlugin
         public Boolean IsConnected => (this._twitchClient?.IsConnected ?? false) == true;
 
         public EventHandler<(String, Exception)> IncorrectLogin { get; set; }
+        private String RefreshToken { get; set; } = null;
+        private Int32 TokenExpiresIn { get; set; } = 0;
+
+        private readonly System.Timers.Timer _refreshTokenTimer = null; 
+        
+
+        private const Int32 WakeupBeforeExpirationS = 1800; /*Wake up seconds before expiration timer*/
+
+        private void SetRefreshToken(String refreshToken,Int32 expiresIn)
+        {
+            this._refreshTokenTimer.Enabled = false;
+
+            //Say, 20 seconds before an actual expiration.
+            //One hour interval
+            this._refreshTokenTimer.Interval = (expiresIn < 3600.0 ? expiresIn: 3600.0 ) * 1000;
+
+            this._refreshTokenTimer.AutoReset = true; //Repeatedly fire
+
+            //1000 * (expiresIn > WakeupBeforeExpirationS ? (expiresIn - WakeupBeforeExpirationS) : WakeupBeforeExpirationS);
+
+            this.RefreshToken = refreshToken;
+            this.TokenExpiresIn = expiresIn;
+
+            this._refreshTokenTimer.Enabled = true;
+
+            TwitchPlugin.PluginLog.Info($"Token timer enabled: {this._refreshTokenTimer.Enabled},  Timer will fire in {this._refreshTokenTimer.Interval / 1000}s Token expires in {expiresIn}");
+        }
+
+        private void OnRefreshTokenTimerTick(Object _, Object _1)
+        {
+            TwitchPlugin.PluginLog.Info($"In Token Refresh timer");
+            this.TokenExpiresIn = ! TwitchProxy.ValidateAccessToken(this.twitchApi.Settings.AccessToken, out var validationResp) ? 0 : validationResp.ExpiresIn;
+
+            //We validate the token hourly. If it's less than an hour to expire, we refresh it.
+            if (this.TokenExpiresIn < 3600)
+            {
+                TwitchPlugin.PluginLog.Info("It's time to refresh the token!");
+                this.RequestRefreshAccessToken(this.RefreshToken);
+            }
+                
+        }
 
         /* Starts an authentication process, upon successful completion of which the connection should start */
         public void StartAuthentication()
@@ -66,9 +107,12 @@ namespace Loupedeck.TwitchPlugin
         public void PreconfiguredConnect(PluginPreferenceAccount account, ValidateAccessTokenResponse validate) =>
             this.OnAccessTokenReceived(this, new AccessTokenReceivedEventArgs(account.AccessToken, account.RefreshToken, validate));
 
+        public void PreconfiguredConnect(String accessToken, String refreshToken, String userId, String login, Int32 expiresIn) =>
+            this.OnAccessTokenReceived(this, new AccessTokenReceivedEventArgs(accessToken, refreshToken, userId, login, expiresIn));
+
         private void OnAccessTokenReceived(Object sender, AccessTokenReceivedEventArgs arg)
         {
-            TwitchPlugin.PluginLog.Info("Access token received");
+            TwitchPlugin.PluginLog.Info($"Access token received, token expires in {arg.ExpiresIn}");
             if (!String.IsNullOrEmpty(this.twitchApi.Settings.AccessToken) && this.IsConnected)
             {
                 TwitchPlugin.PluginLog.Info("Already connected, and access token non-empty.");
@@ -91,8 +135,11 @@ namespace Loupedeck.TwitchPlugin
             //Received access token! Can proceed with connecting
             this.twitchApi.Settings.AccessToken = arg.AccessToken;
 
+            //Storing refresh token. We will store that and this.twitchApi.Settings.AccessToken to account upon succesful connection 
+            this.SetRefreshToken(arg.RefreshToken, arg.ExpiresIn);
+
             //Updating plugin so that tokens will be stored
-            this.TokensUpdated?.Invoke(sender, new TokensUpdatedEventArg(this._userInfo.Login, this.twitchApi.Settings.AccessToken));
+            this.TokensUpdated?.Invoke(sender, new TokensUpdatedEventArg(this._userInfo.Login, this.twitchApi.Settings.AccessToken, this.RefreshToken));
 
             //Note: We need to verify situation when DoConnect fails but authentication succeeds \
             if (Helpers.TryExecuteFunc(() => this.DoConnect(), out var connResult) && connResult)
@@ -209,10 +256,13 @@ namespace Loupedeck.TwitchPlugin
 
             this.IncorrectLogin?.Invoke(sender, (e.Exception.Username, e.Exception));
         }
+
+        private Boolean _refreshAccessTokenRequestBlocked = false;
+
         private void OnAccessTokenExpired(Object sender, EventArgs e)
         {
             TwitchPlugin.PluginLog.Info("TwitchPlugin OnAccessTokenExpired");
-            //FIXME: Here we need to show the browser? 
+            this.RequestRefreshAccessToken(this.RefreshToken);
         }
 
         private void DisconnectAndKillTwitchClient()
@@ -225,6 +275,75 @@ namespace Loupedeck.TwitchPlugin
 
             this.AppDisconnected?.BeginInvoke(this, EventArgs.Empty);
             this.DisposeTwitchClient();
+        }
+
+        public void RequestRefreshAccessToken(String inRefreshToken=null)
+        {
+            var refreshToken = String.IsNullOrEmpty(inRefreshToken) ? this.RefreshToken : inRefreshToken;
+
+            TwitchPlugin.PluginLog.Info("TwitchPlugin RequestRefreshAccessToken");
+
+            if (this._refreshAccessTokenRequestBlocked)
+            {
+                TwitchPlugin.PluginLog.Warning("TwitchPlugin Already requesting");
+                return;
+            }
+
+            this._refreshAccessTokenRequestBlocked = true;
+
+            try
+            {
+                var result = TwitchPlugin.Proxy.twitchApi.Auth.RefreshAuthTokenAsync(refreshToken, this.twitchApi.Settings.Secret).Result;
+
+                if( result != null)
+                {
+                    TwitchPlugin.PluginLog.Info($"Tokens refreshed successfully, new token expires in {result.ExpiresIn}s or {result.ExpiresIn/60}min ");
+
+                    this.twitchApi.Settings.AccessToken = result.AccessToken;
+
+                    if (TwitchProxy.ValidateAccessToken(this.twitchApi.Settings.AccessToken, out var validationResp))
+                    {
+                        this.PreconfiguredConnect(this.twitchApi.Settings.AccessToken, result.RefreshToken, validationResp.UserId, validationResp.Login, result.ExpiresIn);
+                    }
+
+                    //See above the note about reconnection bug
+                    this.DisconnectAndKillTwitchClient();
+                    TwitchPlugin.PluginLog.Info("Phoneix rises from the ashes!");
+                    this.InitializeTwitchClient();
+                    this.DoConnect();
+                    
+                    /*
+                    this._twitchClient.Initialize(
+                        credentials: new ConnectionCredentials(this._userInfo.Login, this.twitchApi.Settings.AccessToken),
+                        channel: this._userInfo.Login);
+
+                    this._twitchClient.Reconnect();
+                    */
+
+                    this.SetRefreshToken(result.RefreshToken, result.ExpiresIn);
+                    //Note that in Refresh response we naturally don't receive userid/login - we use the same as before. 
+                    //this.OnAccessTokenReceived(this, new AccessTokenReceivedEventArgs(result.AccessToken, result.RefreshToken, this._userInfo.Id, this._userInfo.Login, result.ExpiresIn));
+                    
+                    this.TokensUpdated?.Invoke(this, new TokensUpdatedEventArg(this._userInfo.Login, this.twitchApi.Settings.AccessToken, this.RefreshToken));
+                }
+                else
+                {
+                    throw new InvalidAccessTokenException();
+                }
+                
+            }
+            catch (Exception e)
+            {
+                TwitchPlugin.PluginLog.Warning(e, "Twitch: Failed to refresh token. Manual login is needed");
+                //To reset the access tokens
+                this.IncorrectLogin.Invoke(this, (this._userInfo.Login, e));
+                
+            }
+            finally
+            {
+                this._refreshAccessTokenRequestBlocked = false;
+            }
+            
         }
     }
 }
