@@ -1,6 +1,5 @@
 @echo off
 
-setlocal EnableDelayedExpansion
 :: Project post-build event for Windows
 
 set PROJECT_DIR=%~1
