@@ -296,6 +296,7 @@
 
   <!-- ILMerge target. Note, Windows-Only! --> 
   <Target Name="ILMerge" AfterTargets="AfterBuild" Condition="!$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))">
+    <Message Importance="high" Text="Merging the DLLs into one with IlMerge... "/>
 
     <PropertyGroup>
         <OutputDLL>$(TargetDir)$(ProjectName).dll</OutputDLL>
@@ -319,6 +320,7 @@
     </ItemGroup>
 
    <!-- Deleting -->
+    <Message  Importance="high" Text="Done merging. Removing original DLLs... "/>
     <Delete Files="@(AllDlls)" />
   </Target>
 
