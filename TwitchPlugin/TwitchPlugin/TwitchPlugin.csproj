@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Loupedeck.TwitchPlugin</RootNamespace>
-    <AssemblyName>TwitchPlugin</AssemblyName>
+    <AssemblyName>TwitchPluginBare</AssemblyName>	
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -162,6 +162,9 @@
     <None Include="metadata\LoupedeckPackage.yaml" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="ilmerge">
+      <Version>3.0.41</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces">
       <Version>8.0.0</Version>
     </PackageReference>
@@ -290,4 +293,33 @@
   <PropertyGroup>
     <PostBuildEvent>call "$(ProjectDir)BuildEvents\postbuild.cmd" "$(ProjectDir)" "$(TargetDir)" "$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
+
+  <!-- ILMerge target. Note, Windows-Only! --> 
+  <Target Name="ILMerge" AfterTargets="AfterBuild" Condition="!$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))">
+
+    <PropertyGroup>
+        <OutputDLL>$(TargetDir)$(ProjectName).dll</OutputDLL>
+    </PropertyGroup>
+
+    <!-- Making sure the resulting DLL is not there -->
+    <Delete Files="$(OutputDLL)" ContinueOnError="true" />
+
+    <!-- Collect the files to move in the output path -->
+    <ItemGroup>
+        <AllDlls Include="$(OutputPath)\*.dll" />
+    </ItemGroup>
+
+    <!-- Actually run ILMerge -->
+    <Exec Command="&quot;$(ILMergeConsolePath)&quot; /ndebug /lib:&quot;%ProgramFiles(x86)%&quot;\Loupedeck\Loupedeck2\ /out:&quot;$(OutputDLL)&quot; @(AllDlls->'&quot;%(FullPath)&quot;', ' ')" />
+
+   <!-- For release build, remove all but DLL  -->
+   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <AllDlls Include="$(OutputPath)\*.pdb" />
+        <AllDlls Include="$(OutputPath)\*.config" />
+    </ItemGroup>
+
+   <!-- Deleting -->
+    <Delete Files="@(AllDlls)" />
+  </Target>
+
 </Project>
