@@ -287,6 +287,10 @@
       <Version>3.2.6</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Icons\80x80\TwitchShieldModeOff.png" />
+    <EmbeddedResource Include="Icons\80x80\TwitchShieldModeOn.png" />
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent Condition="$(OS) == 'Windows_NT'">call "$(ProjectDir)BuildEvents\postbuild.cmd" "$(ProjectDir)" "$(TargetDir)"</PostBuildEvent>
     <PostBuildEvent Condition="$(OS) != 'Windows_NT'">sh "$(ProjectDir)BuildEvents\postbuild" "$(ProjectDir)" "$(TargetDir)"</PostBuildEvent>
