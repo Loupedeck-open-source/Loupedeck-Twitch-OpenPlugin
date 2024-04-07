@@ -74,7 +74,44 @@
 
             TwitchPlugin.PluginLog.Info($"UpdateShieldModeStatusAsync: {v}");
         }
+        
+        //We poll the shield mode status whenever any of the on/off events are happening
+        private void PollShieldModeStatus(Object _,EventArgs __)
+        {
+            TwitchPlugin.PluginLog.Info("PollShieldModeStatus: enter");
 
+            try
+            {
+                var result =
+                        this.twitchApi.Helix.Moderation.GetShieldModeStatusAsync(this._userInfo.Id, this._userInfo.Id).ConfigureAwait(false);
+                var shieldModeStatus = result.GetAwaiter().GetResult().Data[0].IsActive; 
+                if (shieldModeStatus != this.IsShieldMode )
+                {
+                    //Setting and firing event.
+                    this.IsShieldMode = shieldModeStatus;
+
+                    TwitchPlugin.PluginLog.Info($"Shield Mode changet to : {this.IsShieldMode}");
+
+                    if (this.IsShieldMode)
+                    {
+                        this.AppEvtShieldModeOn?.Invoke(this, EventArgs.Empty);
+                    }
+                    else
+                    {
+                        this.AppEvtShieldModeOff?.Invoke(this, EventArgs.Empty);
+                    }
+                }
+                else
+                {
+                    TwitchPlugin.PluginLog.Info("PollShieldModeStatus: No changes to shield mode");
+                }
+            }
+            catch (Exception e)
+            {
+                TwitchPlugin.PluginLog.Error(e,$"PollShieldModeStatus: Exception");
+            }
+        }
+        
         public void AppShieldModeOn() => this.AppSetShieldMode(true);
         public void AppShieldModeOff() => this.AppSetShieldMode(false);
         public void AppToggleShieldMode() => this.AppSetShieldMode(!this.IsShieldMode);

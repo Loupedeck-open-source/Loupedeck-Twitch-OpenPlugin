@@ -67,6 +67,7 @@
 
             this._twitchClient.OnJoinedChannel += this.OnJoinedChannel;
             this._twitchClient.OnChannelStateChanged += this.OnChannelStateChanged;
+            this._twitchClient.OnChannelStateChanged += this.PollShieldModeStatus;
 
             /* we are not using these yet:  
              * this._twitchClient.OnUserJoined += this.OnUserJoined;
@@ -98,7 +99,7 @@
 
             this._twitchClient.OnJoinedChannel -= this.OnJoinedChannel;
             this._twitchClient.OnChannelStateChanged -= this.OnChannelStateChanged;
-
+            this._twitchClient.OnChannelStateChanged -= this.PollShieldModeStatus;
             //this._twitchClient.OnUserJoined -= this.OnUserJoined;
             //this._twitchClient.OnUserLeft -= this.OnUserLeft;
 
