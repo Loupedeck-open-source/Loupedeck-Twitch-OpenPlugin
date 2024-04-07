@@ -32,7 +32,8 @@
             "channel:moderate",
             "user:edit:broadcast",
             "moderator:manage:chat_messages", 
-            "user:read:email"
+            "user:read:email",
+            "moderator:manage:shield_mode"
         };
 
         public static Boolean IsSameScope(List<String> anotherScopeList) => AuthenticationServer.Scopes.Intersect(anotherScopeList).Count() == Scopes.Count;
