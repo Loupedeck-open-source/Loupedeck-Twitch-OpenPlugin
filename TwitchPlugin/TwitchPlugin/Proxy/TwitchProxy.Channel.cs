@@ -8,6 +8,8 @@
     using TwitchLib.Client.Models;
     using TwitchLib.Api.Helix.Models.Chat.ChatSettings;
     using TwitchLib.Api.Helix.Models.Ads;
+    using TwitchLib.Api.Helix.Models.Moderation.ShieldModeStatus.UpdateShieldModeStatus;
+    using TwitchLib.Api.Helix.Models.Moderation.ShieldModeStatus;
 
     public partial class TwitchProxy : IDisposable
     {
@@ -24,10 +26,14 @@
         public event EventHandler<TimeSpanEventArg> AppEvtChatFollowersOnlyOn;
         public event EventHandler<TimeSpanEventArg> AppEvtChatFollowersOnlyOff;
 
+        public event EventHandler<EventArgs> AppEvtShieldModeOn;
+        public event EventHandler<EventArgs> AppEvtShieldModeOff;
+
+
         public JoinedChannel GetOwnChannel() => this._twitchClient.GetJoinedChannel(this._userInfo.Login);
 
-        private void UpdateOwnChannelSettings(Action<ChatSettings> changeAction) 
-            => this.EnsureOnOwnChannel(() => 
+        private void UpdateOwnChannelSettings(Action<ChatSettings> changeAction)
+            => this.EnsureOnOwnChannel(() =>
             {
                 var newSettings = new ChatSettings()
                 {
@@ -37,12 +43,12 @@
                     SlowMode = this.IsSlowMode
                 };
 
-                if ( newSettings.FollowerMode )
+                if (newSettings.FollowerMode)
                 {
-                    newSettings.FollowerModeDuration = (Int32) this.FollowersOnly.TotalMinutes;
+                    newSettings.FollowerModeDuration = (Int32)this.FollowersOnly.TotalMinutes;
                 }
 
-                if ( newSettings.SlowMode )
+                if (newSettings.SlowMode)
                 {
                     newSettings.SlowModeWaitTime = this.SlowMode;
                 }
@@ -50,7 +56,7 @@
                 changeAction(newSettings);
 
                 var _ = this.twitchApi.Helix.Chat.UpdateChatSettingsAsync(this._userInfo.Id, this._userInfo.Id, newSettings).Result;
-                
+
             });
 
         /* Emotes-only */
@@ -59,6 +65,19 @@
         public void AppEmotesOnlyOn() => this.AppSetEmotesOnly(true);
         public void AppEmotesOnlyOff() => this.AppSetEmotesOnly(false);
         public void AppToggleEmotesOnly() => this.AppSetEmotesOnly(!this.IsEmoteOnly);
+
+        public Boolean IsShieldMode { get; private set; } = false;
+        private void AppSetShieldMode(Boolean status)
+        {
+            var v = Helpers.TryExecuteAction(
+                () => this.twitchApi.Helix.Moderation.UpdateShieldModeStatusAsync(this._userInfo.Id, this._userInfo.Id, new ShieldModeStatusRequest() { IsActive = status }));
+
+            TwitchPlugin.PluginLog.Info($"UpdateShieldModeStatusAsync: {v}");
+        }
+
+        public void AppShieldModeOn() => this.AppSetShieldMode(true);
+        public void AppShieldModeOff() => this.AppSetShieldMode(false);
+        public void AppToggleShieldMode() => this.AppSetShieldMode(!this.IsShieldMode);
 
         /* Subscribers-only */
         public Boolean IsSubOnly { get; private set; } = false;
@@ -163,8 +182,6 @@
             return true;
 
         }
-
-
 
         private void UpdateChannelStatusFromTwitch(OnChannelStateChangedArgs a)
         {
