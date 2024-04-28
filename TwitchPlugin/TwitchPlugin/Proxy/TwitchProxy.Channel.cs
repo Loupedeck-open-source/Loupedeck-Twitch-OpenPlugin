@@ -10,6 +10,7 @@
     using TwitchLib.Api.Helix.Models.Ads;
     using TwitchLib.Api.Helix.Models.Moderation.ShieldModeStatus.UpdateShieldModeStatus;
     using TwitchLib.Api.Helix.Models.Moderation.ShieldModeStatus;
+    using System.Threading;
 
     public partial class TwitchProxy : IDisposable
     {
@@ -69,16 +70,24 @@
         public Boolean IsShieldMode { get; private set; } = false;
         private void AppSetShieldMode(Boolean status)
         {
+            if(this.IsShieldMode != status)
+            {
+                this._shieldModeTimer.Interval = 3 * 1000; //3 seconds
+                //We expect shield mode status to change as result of our activity. Let's poll faster
+            }
+
             var v = Helpers.TryExecuteAction(
                 () => this.twitchApi.Helix.Moderation.UpdateShieldModeStatusAsync(this._userInfo.Id, this._userInfo.Id, new ShieldModeStatusRequest() { IsActive = status }));
-
-            TwitchPlugin.PluginLog.Info($"UpdateShieldModeStatusAsync: {v}");
+            
+            TwitchPlugin.PluginLog.Info($"UpdateShieldModeStatusAsync to {status}: {v}");
         }
-        
+
+
         //We poll the shield mode status whenever any of the on/off events are happening
         private void PollShieldModeStatus(Object _,EventArgs __)
         {
-            TwitchPlugin.PluginLog.Info("PollShieldModeStatus: enter");
+            TwitchPlugin.PluginLog.Info($"PollShieldModeStatus: enter - this.isShieldmode = {this.IsShieldMode}, timer enabled = {this._shieldModeTimer.Enabled}");
+            this._shieldModeTimer.Enabled = false;
 
             try
             {
@@ -87,10 +96,13 @@
                 var shieldModeStatus = result.GetAwaiter().GetResult().Data[0].IsActive; 
                 if (shieldModeStatus != this.IsShieldMode )
                 {
+                    //We assume that we might have got here because we changed the shuield mode status, and there we 
+                    //were polling faster. Let's go back to normal polling
+                    this._shieldModeTimer.Interval = 15 * 1000; //15 seconds
                     //Setting and firing event.
                     this.IsShieldMode = shieldModeStatus;
 
-                    TwitchPlugin.PluginLog.Info($"Shield Mode changet to : {this.IsShieldMode}");
+                    TwitchPlugin.PluginLog.Info($"Shield Mode changed to : {this.IsShieldMode}");
 
                     if (this.IsShieldMode)
                     {
@@ -110,6 +122,8 @@
             {
                 TwitchPlugin.PluginLog.Error(e,$"PollShieldModeStatus: Exception");
             }
+            this._shieldModeTimer.Enabled = true;
+            TwitchPlugin.PluginLog.Info($"PollShieldModeStatus: enter - this.isShieldmode = {this.IsShieldMode}, timer enabled = {this._shieldModeTimer.Enabled}");
         }
         
         public void AppShieldModeOn() => this.AppSetShieldMode(true);
