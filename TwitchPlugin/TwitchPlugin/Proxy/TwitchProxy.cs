@@ -136,8 +136,8 @@
 
             this._shieldModeTimer = new System.Timers.Timer();
             this._shieldModeTimer.AutoReset = true;
-            this._shieldModeTimer.Elapsed += (e, s) => { if (this.IsConnected) { TwitchPlugin.PluginLog.Info("_shieldModeTimer: Tick");  this.PollShieldModeStatus(this, new EventArgs()); } };
-            this._shieldModeTimer.Interval = 15 * 1000; //Every 15s
+            this._shieldModeTimer.Elapsed += (e, s) => { if (this.IsConnected) { this.PollShieldModeStatus(this, new EventArgs()); } };
+            this._shieldModeTimer.Interval = 3 * 1000; //Every 3 seconds
             this._shieldModeTimer.Enabled = false;
             
 

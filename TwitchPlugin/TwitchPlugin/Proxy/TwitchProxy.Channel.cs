@@ -72,7 +72,7 @@
         {
             if(this.IsShieldMode != status)
             {
-                this._shieldModeTimer.Interval = 3 * 1000; //3 seconds
+                this._shieldModeTimer.Enabled = true;
                 //We expect shield mode status to change as result of our activity. Let's poll faster
             }
 
@@ -87,7 +87,6 @@
         private void PollShieldModeStatus(Object _,EventArgs __)
         {
             TwitchPlugin.PluginLog.Info($"PollShieldModeStatus: enter - this.isShieldmode = {this.IsShieldMode}, timer enabled = {this._shieldModeTimer.Enabled}");
-            this._shieldModeTimer.Enabled = false;
 
             try
             {
@@ -96,9 +95,9 @@
                 var shieldModeStatus = result.GetAwaiter().GetResult().Data[0].IsActive; 
                 if (shieldModeStatus != this.IsShieldMode )
                 {
-                    //We assume that we might have got here because we changed the shuield mode status, and there we 
-                    //were polling faster. Let's go back to normal polling
-                    this._shieldModeTimer.Interval = 15 * 1000; //15 seconds
+                    //We assume that we might have got here because we changed the shuield mode status,
+                    //and there we were polling
+                    this._shieldModeTimer.Enabled = false;
                     //Setting and firing event.
                     this.IsShieldMode = shieldModeStatus;
 
@@ -122,8 +121,6 @@
             {
                 TwitchPlugin.PluginLog.Error(e,$"PollShieldModeStatus: Exception");
             }
-            this._shieldModeTimer.Enabled = true;
-            TwitchPlugin.PluginLog.Info($"PollShieldModeStatus: enter - this.isShieldmode = {this.IsShieldMode}, timer enabled = {this._shieldModeTimer.Enabled}");
         }
         
         public void AppShieldModeOn() => this.AppSetShieldMode(true);
@@ -287,6 +284,8 @@
                 var prev_slow = this.SlowMode;
 
                 this.UpdateChannelStatusFromTwitch(e);
+                //Here we can poll ShieldMode status
+                this.PollShieldModeStatus(this, EventArgs.Empty);
 
                 ConditionallyFireEvent(this.IsEmoteOnly != prev_emote, this.IsEmoteOnly, this.AppEvtChatEmotesOnlyOn, this.AppEvtChatEmotesOnlyOff);
                 ConditionallyFireEvent(this.IsSubOnly != prev_sub, this.IsSubOnly, this.AppEvtChatSubscribersOnlyOn, this.AppEvtChatSubscribersOnlyOff);
