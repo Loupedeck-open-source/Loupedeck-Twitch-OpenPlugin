@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Loupedeck.TwitchPlugin</RootNamespace>
-    <AssemblyName>TwitchPluginBare</AssemblyName>	
+    <AssemblyName>TwitchPluginBare</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -64,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\ShieldModeToggleCmd.cs" />
     <Compile Include="Actions\RunCommercialCmd.cs" />
     <Compile Include="Actions\ChatFollowersCommand.cs" />
     <Compile Include="Actions\ChatSlowModeCommand.cs" />
@@ -286,6 +287,10 @@
       <Version>3.2.6</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Icons\80x80\TwitchShieldModeOff.png" />
+    <EmbeddedResource Include="Icons\80x80\TwitchShieldModeOn.png" />
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent Condition="$(OS) == 'Windows_NT'">call "$(ProjectDir)BuildEvents\postbuild.cmd" "$(ProjectDir)" "$(TargetDir)"</PostBuildEvent>
     <PostBuildEvent Condition="$(OS) != 'Windows_NT'">sh "$(ProjectDir)BuildEvents\postbuild" "$(ProjectDir)" "$(TargetDir)"</PostBuildEvent>
@@ -293,35 +298,27 @@
   <PropertyGroup>
     <PostBuildEvent>call "$(ProjectDir)BuildEvents\postbuild.cmd" "$(ProjectDir)" "$(TargetDir)" "$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
-
-  <!-- ILMerge target. Note, Windows-Only! --> 
+  <!-- ILMerge target. Note, Windows-Only! -->
   <Target Name="ILMerge" AfterTargets="AfterBuild" Condition="!$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))">
-    <Message Importance="high" Text="Merging the DLLs into one with IlMerge... "/>
-
+    <Message Importance="high" Text="Merging the DLLs into one with IlMerge... " />
     <PropertyGroup>
-        <OutputDLL>$(TargetDir)$(ProjectName).dll</OutputDLL>
+      <OutputDLL>$(TargetDir)$(ProjectName).dll</OutputDLL>
     </PropertyGroup>
-
     <!-- Making sure the resulting DLL is not there -->
     <Delete Files="$(OutputDLL)" ContinueOnError="true" />
-
     <!-- Collect the files to move in the output path -->
     <ItemGroup>
-        <AllDlls Include="$(OutputPath)\*.dll" />
+      <AllDlls Include="$(OutputPath)\*.dll" />
     </ItemGroup>
-
     <!-- Actually run ILMerge -->
     <Exec Command="&quot;$(ILMergeConsolePath)&quot; /ndebug /lib:&quot;%ProgramFiles(x86)%&quot;\Loupedeck\Loupedeck2\ /out:&quot;$(OutputDLL)&quot; @(AllDlls->'&quot;%(FullPath)&quot;', ' ')" />
-
-   <!-- For release build, remove all but DLL  -->
-   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <AllDlls Include="$(OutputPath)\*.pdb" />
-        <AllDlls Include="$(OutputPath)\*.config" />
+    <!-- For release build, remove all but DLL  -->
+    <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+      <AllDlls Include="$(OutputPath)\*.pdb" />
+      <AllDlls Include="$(OutputPath)\*.config" />
     </ItemGroup>
-
-   <!-- Deleting -->
-    <Message  Importance="high" Text="Done merging. Removing original DLLs... "/>
+    <!-- Deleting -->
+    <Message Importance="high" Text="Done merging. Removing original DLLs... " />
     <Delete Files="@(AllDlls)" />
   </Target>
-
 </Project>

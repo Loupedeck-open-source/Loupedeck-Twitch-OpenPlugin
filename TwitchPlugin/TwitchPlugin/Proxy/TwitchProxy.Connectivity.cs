@@ -43,8 +43,9 @@ namespace Loupedeck.TwitchPlugin
         private String RefreshToken { get; set; } = null;
         private Int32 TokenExpiresIn { get; set; } = 0;
 
-        private readonly System.Timers.Timer _refreshTokenTimer = null; 
-        
+        private readonly System.Timers.Timer _refreshTokenTimer = null;
+        private readonly System.Timers.Timer _shieldModeTimer = null;
+
 
         private const Int32 WakeupBeforeExpirationS = 1800; /*Wake up seconds before expiration timer*/
 

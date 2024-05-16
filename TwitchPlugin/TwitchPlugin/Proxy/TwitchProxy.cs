@@ -67,6 +67,7 @@
 
             this._twitchClient.OnJoinedChannel += this.OnJoinedChannel;
             this._twitchClient.OnChannelStateChanged += this.OnChannelStateChanged;
+            this._twitchClient.OnChannelStateChanged += this.PollShieldModeStatus;
 
             /* we are not using these yet:  
              * this._twitchClient.OnUserJoined += this.OnUserJoined;
@@ -80,6 +81,7 @@
         private void DisposeTwitchClient()
         {
             this._refreshTokenTimer.Enabled = false;
+            this._shieldModeTimer.Enabled = false;      
 
             this.StopViewersUpdateTimer(this, null);
 
@@ -98,7 +100,7 @@
 
             this._twitchClient.OnJoinedChannel -= this.OnJoinedChannel;
             this._twitchClient.OnChannelStateChanged -= this.OnChannelStateChanged;
-
+            this._twitchClient.OnChannelStateChanged -= this.PollShieldModeStatus;
             //this._twitchClient.OnUserJoined -= this.OnUserJoined;
             //this._twitchClient.OnUserLeft -= this.OnUserLeft;
 
@@ -131,6 +133,14 @@
             this._refreshTokenTimer.AutoReset = false;
             this._refreshTokenTimer.Elapsed += (e, s) => this.OnRefreshTokenTimerTick(null, null);
             this._refreshTokenTimer.Enabled = false;
+
+            this._shieldModeTimer = new System.Timers.Timer();
+            this._shieldModeTimer.AutoReset = true;
+            this._shieldModeTimer.Elapsed += (e, s) => { if (this.IsConnected) { this.PollShieldModeStatus(this, new EventArgs()); } };
+            this._shieldModeTimer.Interval = 3 * 1000; //Every 3 seconds
+            this._shieldModeTimer.Enabled = false;
+            
+
 
             this._viewersUpdatetimer = new System.Timers.Timer();
             this._viewersUpdatetimer.AutoReset = true;
