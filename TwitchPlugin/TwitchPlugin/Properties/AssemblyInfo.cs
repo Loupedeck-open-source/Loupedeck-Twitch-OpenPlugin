@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Loupedeck plugin for Twitch")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("This Loupedeck plugin helps you to control your Twitch service")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Loupedeck Oy")]
+[assembly: AssemblyCompany("Loupedeck Ltd")]
 [assembly: AssemblyProduct("Loupedeck")]
-[assembly: AssemblyCopyright("Copyright © 2023 Loupedeck Oy")]
+[assembly: AssemblyCopyright("Copyright © 2024 Loupedeck Ltd")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -31,4 +31,4 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyVersion("5.10.3")]
