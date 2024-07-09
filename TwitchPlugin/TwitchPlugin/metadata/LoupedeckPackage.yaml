@@ -8,7 +8,7 @@ type: plugin4
 # Name of the plugin.
 name: Twitch
 
-# Name that is displayed in the Loupedeck configuration application.
+# Name that is displayed in the Logitech configuration application.
 displayName: Twitch
 
 # Name of the plugin library file.
@@ -18,10 +18,10 @@ pluginFileName: TwitchPlugin.dll
 version: 5.10.4
 
 # Author of the plugin. The author can be a company or an individual developer.
-author: Loupedeck
+author: Logitech Europe SA
 
 # Copyright information.
-copyright: Copyright © 2024 Loupedeck. All rights reserved.
+copyright: Copyright © 2024 Logitech Europe SA. All rights reserved.
 
 # Minimal Loupedeck Version to be used
 minimumLoupedeckVersion: 5.9.0
