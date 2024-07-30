@@ -113,10 +113,7 @@
     <EmbeddedResource Include="Localization\TwitchPlugin_ja-JP.xliff" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="metadata\Icon16x16.png" />
     <EmbeddedResource Include="metadata\Icon256x256.png" />
-    <EmbeddedResource Include="metadata\Icon32x32.png" />
-    <EmbeddedResource Include="metadata\Icon48x48.png" />
     <EmbeddedResource Include="Icons\50x50\TwitchAd.png" />
     <EmbeddedResource Include="Icons\50x50\TwitchAd1.png" />
     <EmbeddedResource Include="Icons\50x50\TwitchChatMessage.png" />
