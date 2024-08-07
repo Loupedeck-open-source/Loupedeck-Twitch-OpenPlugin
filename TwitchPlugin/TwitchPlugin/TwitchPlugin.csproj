@@ -1,67 +1,30 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{52F89C82-8F87-4E46-AA85-434E56227148}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Loupedeck.TwitchPlugin</RootNamespace>
-    <AssemblyName>TwitchPluginBare</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup>
-    <BaseIntermediateOutputPath>$(SolutionDir)..\obj\</BaseIntermediateOutputPath>
-    <BaseOutputPath>$(SolutionDir)..\bin\</BaseOutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath Condition="$(OS) == 'Windows_NT'">$(LocalAppData)\Loupedeck\Plugins\ObsStudioPlugin\win\</OutputPath>
-    <OutputPath Condition="$(OS) != 'Windows_NT'">$(HOME)/.local/share/Loupedeck/Plugins/ObsStudioPlugin/mac/</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
-    <OutputPath>..\..\..\..\Users\Andrei Laperie\AppData\Local\Loupedeck\Plugins\TwitchPlugin\win\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <OutputPath>..\..\bin\win\</OutputPath>
+    <AssemblyName>TwitchPlugin</AssemblyName>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>warnings</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Authors>Logitech Europe SA</Authors>
+    <Copyright>Copyright © 2024 Logitech Europe SA. All rights reserved.</Copyright>
+    <AssemblyVersion>5.10.4</AssemblyVersion>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <BaseOutputPath>$(SolutionDir)bin\</BaseOutputPath>
+    <OutputPath Condition="$(OS) == 'Windows_NT'">$(BaseOutputPath)$(Configuration)\win\</OutputPath>
+    <OutputPath Condition="$(OS) != 'Windows_NT'">$(BaseOutputPath)$(Configuration)/mac/</OutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PluginApi">
-      <HintPath>..\..\..\..\Program Files (x86)\Loupedeck\Loupedeck2\PluginApi.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>$(SolutionDir)TwitchPlugin\TwitchPlugin\Sdk\net8\PluginApi.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Actions\ShieldModeToggleCmd.cs" />
@@ -100,14 +63,21 @@
     <Compile Include="Proxy\TwitchProxy.Viewers.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Localization\Localization.resx">
+    <Compile Update="Localization\Localization.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Localization.resx</DependentUpon>
+    </Compile>
+    <None Include="Proxy\TwitchProxy.Chatters.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Localization\Localization.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Localization.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="PluginConfiguration.xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <EmbeddedResource Include="Localization\TwitchPlugin_xx-XX.xliff" />
     <EmbeddedResource Include="Localization\TwitchPlugin_de-DE.xliff" />
     <EmbeddedResource Include="Localization\TwitchPlugin_ja-JP.xliff" />
@@ -155,89 +125,11 @@
     <EmbeddedResource Include="Icons\80x80\TwitchViewers.png" />
     <EmbeddedResource Include="Icons\80x80\Restart.png" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="metadata\LoupedeckPackage.yaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="ilmerge">
-      <Version>3.0.41</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces">
-      <Version>8.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection">
-      <Version>8.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
-      <Version>8.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging">
-      <Version>8.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
-      <Version>8.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Options">
-      <Version>8.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Primitives">
-      <Version>8.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NETCore.Platforms">
-      <Version>7.0.4</Version>
-    </PackageReference>
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>13.0.3</Version>
-    </PackageReference>
-    <PackageReference Include="System.Buffers">
-      <Version>4.5.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.Diagnostics.DiagnosticSource">
-      <Version>8.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.IO">
-      <Version>4.3.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Memory">
-      <Version>4.5.5</Version>
-    </PackageReference>
-    <PackageReference Include="System.Net.Http">
-      <Version>4.3.4</Version>
-    </PackageReference>
-    <PackageReference Include="System.Numerics.Vectors">
-      <Version>4.5.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Runtime">
-      <Version>4.3.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe">
-      <Version>6.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Security.Cryptography.Algorithms">
-      <Version>4.3.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.Security.Cryptography.Encoding">
-      <Version>4.3.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Security.Cryptography.Primitives">
-      <Version>4.3.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Security.Cryptography.X509Certificates">
-      <Version>4.3.2</Version>
-    </PackageReference>
-    <PackageReference Include="System.Text.Encodings.Web">
-      <Version>8.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Text.Json">
-      <Version>8.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Threading.Tasks.Extensions">
-      <Version>4.5.4</Version>
-    </PackageReference>
-    <PackageReference Include="System.ValueTuple">
-      <Version>4.5.0</Version>
-    </PackageReference>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="8.0.0" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="TwitchLib">
       <Version>3.5.3</Version>
     </PackageReference>
@@ -283,46 +175,39 @@
     <PackageReference Include="TwitchLib.PubSub">
       <Version>3.2.6</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters" Version="1.3.0" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="8.0.0-preview.7.23375.6" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Icons\80x80\TwitchShieldModeOff.png" />
     <EmbeddedResource Include="Icons\80x80\TwitchShieldModeOn.png" />
   </ItemGroup>
-  <PropertyGroup>
-    <PostBuildEvent Condition="$(OS) == 'Windows_NT'">call "$(ProjectDir)BuildEvents\postbuild.cmd" "$(ProjectDir)" "$(TargetDir)"</PostBuildEvent>
-    <PostBuildEvent Condition="$(OS) != 'Windows_NT'">sh "$(ProjectDir)BuildEvents\postbuild" "$(ProjectDir)" "$(TargetDir)"</PostBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent>call "$(ProjectDir)BuildEvents\postbuild.cmd" "$(ProjectDir)" "$(TargetDir)" "$(TargetFileName)"</PostBuildEvent>
-  </PropertyGroup>
-  <!-- ILMerge target. Note, Windows-Only! -->
-  <Target Name="ILMerge" AfterTargets="AfterBuild" Condition="!$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))">
-    <Message Importance="high" Text="Merging the DLLs into one with IlMerge... " />
-    <PropertyGroup>
-      <OutputDLL>$(TargetDir)$(ProjectName).dll</OutputDLL>
-    </PropertyGroup>
-    <!-- Making sure the resulting DLL is not there -->
-    <Delete Files="$(OutputDLL)" ContinueOnError="true" />
-    <!-- Collect the files to move in the output path -->
-    <ItemGroup>
-	<AllSourceDlls Include="$(OutputPath)\*.dll" />
-    </ItemGroup>
-    <ItemGroup>
-	<PluginDll Include="@(AllSourceDlls)" Condition="'%(Filename)' == '$(AssemblyName)'" /> 
-	<OtherDlls Include="@(AllSourceDlls)" Condition="'%(Filename)' != '$(AssemblyName)'" />
-    </ItemGroup>
-    <ItemGroup>
-	<AllDlls Include="@(PluginDll);@(OtherDlls)" />
-    </ItemGroup>
-    <!-- Actually run ILMerge -->
-    <Exec Command="&quot;$(ILMergeConsolePath)&quot; /ndebug /lib:&quot;%ProgramFiles(x86)%&quot;\Loupedeck\Loupedeck2\ /out:&quot;$(OutputDLL)&quot; @(AllDlls->'&quot;%(FullPath)&quot;', ' ')" />
-    <!-- For release build, remove all but DLL  -->
-    <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-      <AllDlls Include="$(OutputPath)\*.pdb" />
-      <AllDlls Include="$(OutputPath)\*.config" />
-    </ItemGroup>
-    <!-- Deleting -->
-    <Message Importance="high" Text="Done merging. Removing original DLLs... " />
-    <Delete Files="@(AllDlls)" />
+  <ItemGroup>
+    <Compile Remove="Contracts\ILogger.cs" />
+    <Compile Remove="Proxy\TwitchProxy.Chatters.cs" />
+    <Compile Remove="Realizations\Logger.cs" />
+    <Compile Remove="TwitchHelpers.cs" />
+  </ItemGroup>
+
+ <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Condition="$(OS) == 'Windows_NT'" Command="echo $(TargetDir) &gt; $(LocalAppData)\Logi\LogiPluginService\Plugins\$(ProjectName).link&#xD;&#xA;call $(ProjectDir)BuildEvents\postbuild.cmd $(ProjectDir) $(TargetDir)" />
+    <Exec Condition="$(OS) != 'Windows_NT'" Command="echo $(TargetDir) &gt; $(LocalAppData)\Logi\LogiPluginService\Plugins\$(ProjectName).link&#xD;&#xA;sh $(ProjectDir)BuildEvents\postbuild $(ProjectDir) $(TargetDir)" />
   </Target>
+
+  <Target Name="PluginClean" AfterTargets="CoreClean">
+    <Delete Files="$(LocalAppData)\Loupedeck\Plugins\$(ProjectName).link" />
+  </Target>
+
 </Project>

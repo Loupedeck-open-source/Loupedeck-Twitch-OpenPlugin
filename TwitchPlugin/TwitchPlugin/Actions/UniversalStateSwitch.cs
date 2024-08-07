@@ -26,10 +26,10 @@
             this.Description = "Sets a specific action toggle to go to a pre-defined state. This is particularly useful to ensure that a Toggle is set on or off in custom Multi-Action.";
             this.GroupName = "";
 
-            this.ActionEditor.AddControl(
+            this.ActionEditor.AddControlEx(
                 new ActionEditorListbox(name: ToggleActionSelector, labelText: "Twitch toggle:"));
             
-            this.ActionEditor.AddControl(
+            this.ActionEditor.AddControlEx(
                 new ActionEditorListbox(name: ToggleStateSelector, labelText: "Set to state:"));
             this.ActionEditor.ListboxItemsRequested += this.OnActionEditorListboxItemsRequested;
             this.ActionEditor.ControlValueChanged += this.OnActionEditorControlValueChanged;
