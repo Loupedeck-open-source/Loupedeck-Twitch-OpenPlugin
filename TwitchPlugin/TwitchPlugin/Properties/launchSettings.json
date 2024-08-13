@@ -6,7 +6,7 @@
     },
     "TwitchPluginMac": {
       "commandName": "Executable",
-      "executablePath": "/Applications/Loupedeck.app/Contents/MacOS/Loupedeck"
+      "executablePath": "/Applications/Utilities/LogiPluginService.app"
       }
     }
 }

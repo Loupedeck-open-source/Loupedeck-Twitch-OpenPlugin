@@ -53,7 +53,6 @@
     <Compile Include="Models\TwitchPluginConfig.cs" />
     <Compile Include="Models\EventArgs.cs" />
     <Compile Include="Models\UserInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TwitchApplication.cs" />
     <Compile Include="TwitchPlugin.cs" />
     <Compile Include="Proxy\TwitchProxy.Channel.cs" />
@@ -61,14 +60,6 @@
     <Compile Include="Proxy\TwitchProxy.cs" />
     <None Include="Proxy\TwitchProxy.Chatters.cs" />
     <Compile Include="Proxy\TwitchProxy.Viewers.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Localization\Localization.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Localization.resx</DependentUpon>
-    </Compile>
-    <None Include="Proxy\TwitchProxy.Chatters.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Localization\Localization.resx">
@@ -194,20 +185,11 @@
     <EmbeddedResource Include="Icons\80x80\TwitchShieldModeOff.png" />
     <EmbeddedResource Include="Icons\80x80\TwitchShieldModeOn.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Contracts\ILogger.cs" />
-    <Compile Remove="Proxy\TwitchProxy.Chatters.cs" />
-    <Compile Remove="Realizations\Logger.cs" />
-    <Compile Remove="TwitchHelpers.cs" />
-  </ItemGroup>
-
  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Condition="$(OS) == 'Windows_NT'" Command="echo $(TargetDir) &gt; $(LocalAppData)\Logi\LogiPluginService\Plugins\$(ProjectName).link&#xD;&#xA;call $(ProjectDir)BuildEvents\postbuild.cmd $(ProjectDir) $(TargetDir)" />
     <Exec Condition="$(OS) != 'Windows_NT'" Command="echo $(TargetDir) &gt; $(LocalAppData)\Logi\LogiPluginService\Plugins\$(ProjectName).link&#xD;&#xA;sh $(ProjectDir)BuildEvents\postbuild $(ProjectDir) $(TargetDir)" />
   </Target>
-
   <Target Name="PluginClean" AfterTargets="CoreClean">
     <Delete Files="$(LocalAppData)\Loupedeck\Plugins\$(ProjectName).link" />
   </Target>
-
 </Project>
