@@ -251,12 +251,9 @@
             }
         }
 
-        private void LoadPluginIcons()
-        {
-            this.Info.Icon256x256 = EmbeddedResources.ReadImage("Loupedeck.TwitchPlugin.metadata.Icon256x256.png");
-        }
+        private void LoadPluginIcons() => this.Info.Icon256x256 = EmbeddedResources.ReadImage("Loupedeck.TwitchPlugin.metadata.Icon256x256.png");
 
-        internal const String ImageResPrefix = "Loupedeck.TwitchPlugin.Icons._80x80.";
+        internal const String ImageResPrefix = "Loupedeck.TwitchPlugin.Icons.";
 
         public static void Trace(String line) => TwitchPlugin.PluginLog.Info("TW:" + line);
 
@@ -302,9 +299,5 @@
         /// <returns>bitmap with text rendered</returns>
         internal BitmapImage GetPluginCommandImage(PluginImageSize imageSize, String imagePath, String text = null, Boolean textSelected = false) =>
             this.BuildImage(imageSize, ImageResPrefix + imagePath, text, textSelected).ToImage();
-
-        internal BitmapImage GetPluginCommandImage(Int32 imageWidth, Int32 _, String imagePath, String text = null, Boolean textSelected = false) =>
-                    this.BuildImage(imageWidth > 75 ? PluginImageSize.Width90 : PluginImageSize.Width60, ImageResPrefix + imagePath, text, textSelected).ToImage();
-
     }
 }

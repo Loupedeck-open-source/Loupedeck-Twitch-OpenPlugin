@@ -30,9 +30,9 @@
             new FollowModeDescriptor(new System.TimeSpan(30, 0, 0,0), "1 Month","1mo"),
             new FollowModeDescriptor(new System.TimeSpan(90, 0, 0,0), "3 Months","3mo")
         };
-        
-        private readonly String ImgOn = "TwitchFollowerChat.png";
-        private readonly String ImgOff = "TwitchFollowerChatToggle.png";
+
+        private readonly String ImgOn = "ChatFollowers-Only.svg";
+        private readonly String ImgOff = "ChatFollowers-OnlyOff.svg";
 
         private const Int32 STATE_OFF = 0;
         private const Int32 STATE_ON = 1;
@@ -47,6 +47,7 @@
             this.DisplayName = "Chat Followers-Only";
             this.Description = "Turns Followers-Only mode for Twitch Chat on/off";
             this.GroupName = "Chat Followers-Only";
+            this.Name = "ChatFollowersCommand";
 
             this.ActionEditor.AddControlEx(
                            new ActionEditorListbox(name: FollowModeDurationControl, labelText: "Followers for:"));
@@ -130,25 +131,11 @@
             => ActionHelpers.FillListBox(e, FollowModeDurationControl, 
                 () => Array.ForEach(ChatFollowersCommand.FollowModeTimeSpans, 
                     (item)  => e.AddItem(name: item.durationSeconds.ToString(), displayName:  $"{item.longName}", description: $"Followers can chat if they followed you at least {item.longName}")));
-        
+
         protected override BitmapImage GetCommandImage(ActionEditorActionParameters actionParameters, Int32 stateIndex, Int32 imageWidth, Int32 imageHeight)
         {
-            var isOn = stateIndex == 1; //TwitchPlugin.Proxy.IsFollowersOnly
-            var iconFileName = isOn ? this.ImgOn : this.ImgOff;
-
-            var iconText = "N/A";
-
-            if (actionParameters.TryGetString(FollowModeDurationControl, out var modeDuration))
-            {
-                //To get short name
-                var item = Array.Find(ChatFollowersCommand.FollowModeTimeSpans, x => x.durationSeconds.ToString() == modeDuration);
-                if (!Object.Equals(item, default(FollowModeDescriptor)))
-                {
-                    iconText = $"{item.shortName}";
-                }
-            }
-
-            return (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageWidth, imageHeight, iconFileName, iconText, iconFileName == this.ImgOn);
+            var iconFileName = stateIndex == 1 ? this.ImgOn : this.ImgOff;
+            return EmbeddedResources.ReadBinaryFile(TwitchPlugin.ImageResPrefix + iconFileName).ToImage();
         }
 
         protected override Boolean RunCommand(ActionEditorActionParameters actionParameters)

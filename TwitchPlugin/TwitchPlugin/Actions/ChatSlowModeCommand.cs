@@ -19,8 +19,8 @@
             [SlowModeDurationControl] = "120"
         };
 
-        private readonly String ImgOn  = "TwitchSlowChat.png";
-        private readonly String ImgOff = "TwitchSlowChatToggle.png";
+        private readonly String ImgOn  = "ChatSlowMode.svg";
+        private readonly String ImgOff = "ChatSlowModeOff.svg";
 
         private const Int32 STATE_OFF = 0;
         private const Int32 STATE_ON  = 1;
@@ -110,14 +110,8 @@
         
         protected override BitmapImage GetCommandImage(ActionEditorActionParameters actionParameters, Int32 stateIndex, Int32 imageWidth, Int32 imageHeight)
         {
-            var isOn = stateIndex == 1; //TwitchPlugin.Proxy.IsSlowMode
-            var iconFileName = isOn ? this.ImgOn : this.ImgOff;
-
-            var iconText = actionParameters.TryGetString(SlowModeDurationControl, out var modeDuration) 
-                    ? $"{modeDuration} s" 
-                    : "N/A";
-
-            return (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageWidth, imageHeight, iconFileName, iconText, iconFileName == this.ImgOn);
+            var iconFileName = stateIndex == 1 ? this.ImgOn : this.ImgOff;
+            return EmbeddedResources.ReadBinaryFile(TwitchPlugin.ImageResPrefix + iconFileName).ToImage();
         }
 
         protected override Boolean RunCommand(ActionEditorActionParameters actionParameters)
