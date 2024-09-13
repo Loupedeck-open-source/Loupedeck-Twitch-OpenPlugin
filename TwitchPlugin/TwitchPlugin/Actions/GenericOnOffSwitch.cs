@@ -117,21 +117,5 @@
                 base.RunCommand(actionParameter);
             }
         }
-
-        //protected override BitmapImage GetCommandImage(String actionParameter, PluginImageSize imageSize)
-        //{
-        //    if (String.IsNullOrEmpty(actionParameter))
-        //    {
-        //        // Handling legacy (old OBS plugin) actions. For some strange reason TryGetStateIndex is not working...
-        //        var stateIndex = this.IsTurnedOn ? 1 : 0;
-        //        this._legacyActionDetected = true;
-        //        //this.Plugin.Log.Info($"Legacy GCM for {this.Name}, state index {stateIndex}");
-        //        return this.GetCommandImage($"{(Int32)TwoStateCommand.Toggle}", stateIndex, imageSize);
-        //    }
-        //    else
-        //    {
-        //        return base.GetCommandImage(actionParameter, imageSize);
-        //    }
-        //}
     }
 }
