@@ -14,7 +14,7 @@
             this.DisplayName = "Run Commercial";
             this.Description = "Runs a commercial during your Twitch stream (Partners only)";
 
-            this.ActionEditor.AddControl(
+            this.ActionEditor.AddControlEx(
                 new ActionEditorListbox(name: ListboxControlName, labelText: "Seconds:"));
 
             this.ActionEditor.ListboxItemsRequested += this.OnActionEditorListboxItemsRequested;

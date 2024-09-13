@@ -36,7 +36,7 @@
             this.Description = "Require chat users to wait between sending messages. Subscribers can be exempted via Partner/Affiliate settings";
             this.GroupName = "";
 
-            this.ActionEditor.AddControl(
+            this.ActionEditor.AddControlEx(
                            new ActionEditorListbox(name: SlowModeDurationControl, labelText: "Slow mode duration:"));
 
             this.ActionEditor.ListboxItemsRequested += this.OnActionEditorListboxItemsRequested;

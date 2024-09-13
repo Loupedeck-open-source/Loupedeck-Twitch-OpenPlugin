@@ -9,7 +9,6 @@
     using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Runtime.Remoting.Contexts;
     using System.Text;
     using System.Web;
     using TwitchLib.Api.Auth;
@@ -107,7 +106,12 @@
             {
                 if (Helpers.IsWindows())
                 {
-                    System.Diagnostics.Process.Start(oauthUrl);
+                    using (var p = new System.Diagnostics.Process())
+                    {
+                        p.StartInfo.FileName = oauthUrl;
+                        p.StartInfo.UseShellExecute = true;
+                        p.Start();
+                    }
                 }
                 else
                 {

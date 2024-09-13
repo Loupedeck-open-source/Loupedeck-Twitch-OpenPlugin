@@ -48,7 +48,7 @@
             this.Description = "Turns Followers-Only mode for Twitch Chat on/off";
             this.GroupName = "Chat Followers-Only";
 
-            this.ActionEditor.AddControl(
+            this.ActionEditor.AddControlEx(
                            new ActionEditorListbox(name: FollowModeDurationControl, labelText: "Followers for:"));
 
             this.ActionEditor.ListboxItemsRequested += this.OnActionEditorListboxItemsRequested;
