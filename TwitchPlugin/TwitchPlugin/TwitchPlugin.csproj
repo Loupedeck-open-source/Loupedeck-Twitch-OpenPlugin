@@ -85,6 +85,7 @@
     <EmbeddedResource Include="Icons\ChatSlowMode.svg" />
     <EmbeddedResource Include="Icons\ChatSlowModeOff.svg" />
     <EmbeddedResource Include="Icons\ChatSubscribers-Only.svg" />
+    <EmbeddedResource Include="Icons\ChatSubscribers-OnlyOff.svg" />
     <EmbeddedResource Include="Icons\CreateClip.svg" />
     <EmbeddedResource Include="Icons\CreateMarker.svg" />
     <EmbeddedResource Include="Icons\RunCommercial.svg" />
