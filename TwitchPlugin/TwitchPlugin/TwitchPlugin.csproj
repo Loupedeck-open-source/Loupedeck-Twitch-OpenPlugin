@@ -40,6 +40,7 @@
     <Compile Include="Actions\ChatEmoToggleCmd.cs" />
     <Compile Include="Actions\InternalDebugCommand.cs" />
     <Compile Include="Actions\ViewerCountCommand.cs" />
+    <Compile Include="Actions\SendChatMessageCmd.cs" />
     <Compile Include="Authenticator\AuthenticationServer.cs" />
     <Compile Include="DisplayNameMaps.cs" />
     <Compile Include="Exceptions\InvalidAccessTokenException.cs" />
@@ -89,6 +90,7 @@
     <EmbeddedResource Include="Icons\CreateClip.svg" />
     <EmbeddedResource Include="Icons\CreateMarker.svg" />
     <EmbeddedResource Include="Icons\RunCommercial.svg" />
+    <EmbeddedResource Include="Icons\SendChatMessage.svg" />
     <EmbeddedResource Include="Icons\TwitchViewers.png" />
   </ItemGroup>
   <ItemGroup>
@@ -150,7 +152,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Condition="$(OS) == 'Windows_NT'" Command="echo $(TargetDir) &gt; $(LocalAppData)\Logi\LogiPluginService\Plugins\$(ProjectName).link&#xD;&#xA;call $(ProjectDir)BuildEvents\postbuild.cmd $(ProjectDir) $(TargetDir)" />
+    <Exec Condition="$(OS) == 'Windows_NT'" Command="echo $(BaseOutputPath)$(Configuration) &gt; $(LocalAppData)\Logi\LogiPluginService\Plugins\$(ProjectName).link&#xD;&#xA;call $(ProjectDir)BuildEvents\postbuild.cmd $(ProjectDir) $(TargetDir)" />
     <Exec Condition="$(OS) != 'Windows_NT'" Command="echo $(TargetDir) &gt; $(LocalAppData)\Logi\LogiPluginService\Plugins\$(ProjectName).link&#xD;&#xA;sh $(ProjectDir)BuildEvents\postbuild $(ProjectDir) $(TargetDir)" />
   </Target>
   <Target Name="PluginClean" AfterTargets="CoreClean">
