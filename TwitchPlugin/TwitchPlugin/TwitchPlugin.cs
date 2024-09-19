@@ -261,6 +261,22 @@
 
         internal BitmapBuilder BuildImage(PluginImageSize imageSize, String imageName, String text, Boolean selected)
         {
+            // Fix for bug when the value of imageSize does not belong to PluginImageSize enum
+            switch ((Int32)imageSize)
+            {
+                case 60:
+                    imageSize = PluginImageSize.Width60;
+                    break;
+                case 90:
+                    imageSize = PluginImageSize.Width90;
+                    break;
+                case 116:
+                    imageSize = PluginImageSize.Width116;
+                    break;
+                default:
+                    break;
+            }
+
             var bitmapBuilder = new BitmapBuilder(imageSize);
             try
             {
@@ -282,8 +298,8 @@
 
                 bitmapBuilder.DrawText(text, (Int32)x1, (Int32)y1, (Int32)w, (Int32)h,
                                             selected ? BitmapColor.Black : BitmapColorPink,
-                                            imageSize == PluginImageSize.Width90 ? 13 : 9,
-                                            imageSize == PluginImageSize.Width90 ? 12 : 8, 1);
+                                            imageSize == PluginImageSize.Width90 ? 26 : 18,
+                                            imageSize == PluginImageSize.Width90 ? 24 : 16, 1);
             }
 
             return bitmapBuilder;
