@@ -4,7 +4,7 @@ namespace Loupedeck.TwitchPlugin.Actions
 
     internal class ClearChatCommand : PluginDynamicCommand
     {
-        private const String IMGAction = "TwitchClearChat1.png";
+        private const String IMGAction = "ClearChat.svg";
 
         private const String InvalidScreenshotFolder = "Clears all messages in Twitch chat";
 
@@ -32,7 +32,7 @@ namespace Loupedeck.TwitchPlugin.Actions
 
         private void OnAppDisconnected(Object sender, EventArgs e) => this.IsEnabled = false;
 
-        protected override BitmapImage GetCommandImage(String actionParameter, PluginImageSize imageSize) => (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageSize, IMGAction);
+        protected override BitmapImage GetCommandImage(String actionParameter, PluginImageSize imageSize) => EmbeddedResources.ReadBinaryFile(TwitchPlugin.ImageResPrefix + IMGAction).ToImage();
 
         protected override void RunCommand(String actionParameter) => TwitchPlugin.Proxy.AppClearChat();
     }

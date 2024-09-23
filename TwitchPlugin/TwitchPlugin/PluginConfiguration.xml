@@ -14,9 +14,6 @@
         <group displayName="">
 			<command name="ResetSettings" displayName="Reset Settings" description="Resets chat settings to default."/>
 		</group>
-      <group displayName="SendChatMessage">
-        <command name="SendChatMessage" profileActionType="text;Enter message text:" description="Sends a predefined message to your Twitch chat"/>
-      </group>
     </actions>
 
     <layouts>

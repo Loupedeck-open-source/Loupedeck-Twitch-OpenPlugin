@@ -5,7 +5,7 @@
     public class RunCommercialCmd : ActionEditorCommand
     {
         private const String ListboxControlName = "dura";
-        private const String IMGAction = "TwitchAd1.png";
+        private const String IMGAction = "RunCommercial.svg";
 
         private static readonly Int32[] _durations = { 30, 60, 90, 120, 150, 180 };
 
@@ -58,10 +58,11 @@
         }
 
         protected override BitmapImage GetCommandImage(ActionEditorActionParameters actionParameters, Int32 imageWidth, Int32 imageHeight)
-               => (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageWidth, imageHeight, IMGAction,
-                        actionParameters.TryGetString(ListboxControlName, out var cmdDuration)
-                            ? cmdDuration
-                            : "n/a");
+            => EmbeddedResources.ReadBinaryFile(TwitchPlugin.ImageResPrefix + IMGAction).ToImage();
+        //=> (this.Plugin as TwitchPlugin).GetPluginCommandImage(imageWidth, imageHeight, IMGAction,
+        //         actionParameters.TryGetString(ListboxControlName, out var cmdDuration)
+        //             ? cmdDuration
+        //             : "n/a");
         protected override Boolean RunCommand(ActionEditorActionParameters actionParameters)
         {
             return actionParameters.TryGetString(ListboxControlName, out var cmdDuration)

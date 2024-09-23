@@ -252,12 +252,9 @@
             }
         }
 
-        private void LoadPluginIcons()
-        {
-            this.Info.Icon256x256 = EmbeddedResources.ReadImage("Loupedeck.TwitchPlugin.metadata.Icon256x256.png");
-        }
+        private void LoadPluginIcons() => this.Info.Icon256x256 = EmbeddedResources.ReadImage("Loupedeck.TwitchPlugin.metadata.Icon256x256.png");
 
-        internal const String ImageResPrefix = "Loupedeck.TwitchPlugin.Icons._80x80.";
+        internal const String ImageResPrefix = "Loupedeck.TwitchPlugin.Icons.";
 
         public static void Trace(String line) => TwitchPlugin.PluginLog.Info("TW:" + line);
 
@@ -265,6 +262,22 @@
 
         internal BitmapBuilder BuildImage(PluginImageSize imageSize, String imageName, String text, Boolean selected)
         {
+            // Fix for bug when the value of imageSize does not belong to PluginImageSize enum
+            switch ((Int32)imageSize)
+            {
+                case 60:
+                    imageSize = PluginImageSize.Width60;
+                    break;
+                case 90:
+                    imageSize = PluginImageSize.Width90;
+                    break;
+                case 116:
+                    imageSize = PluginImageSize.Width116;
+                    break;
+                default:
+                    break;
+            }
+
             var bitmapBuilder = new BitmapBuilder(imageSize);
             try
             {
@@ -286,8 +299,8 @@
 
                 bitmapBuilder.DrawText(text, (Int32)x1, (Int32)y1, (Int32)w, (Int32)h,
                                             selected ? BitmapColor.Black : BitmapColorPink,
-                                            imageSize == PluginImageSize.Width90 ? 13 : 9,
-                                            imageSize == PluginImageSize.Width90 ? 12 : 8, 1);
+                                            imageSize == PluginImageSize.Width90 ? 26 : 18,
+                                            imageSize == PluginImageSize.Width90 ? 24 : 16, 1);
             }
 
             return bitmapBuilder;
@@ -303,9 +316,5 @@
         /// <returns>bitmap with text rendered</returns>
         internal BitmapImage GetPluginCommandImage(PluginImageSize imageSize, String imagePath, String text = null, Boolean textSelected = false) =>
             this.BuildImage(imageSize, ImageResPrefix + imagePath, text, textSelected).ToImage();
-
-        internal BitmapImage GetPluginCommandImage(Int32 imageWidth, Int32 _, String imagePath, String text = null, Boolean textSelected = false) =>
-                    this.BuildImage(imageWidth > 75 ? PluginImageSize.Width90 : PluginImageSize.Width60, ImageResPrefix + imagePath, text, textSelected).ToImage();
-
     }
 }

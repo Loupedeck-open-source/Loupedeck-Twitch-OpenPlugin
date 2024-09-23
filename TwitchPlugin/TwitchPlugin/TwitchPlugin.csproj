@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Authors>Logitech Europe SA</Authors>
     <Copyright>Copyright © 2024 Logitech Europe SA. All rights reserved.</Copyright>
-    <AssemblyVersion>5.10.4</AssemblyVersion>
+    <AssemblyVersion>6.0.1</AssemblyVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
@@ -40,6 +40,7 @@
     <Compile Include="Actions\ChatEmoToggleCmd.cs" />
     <Compile Include="Actions\InternalDebugCommand.cs" />
     <Compile Include="Actions\ViewerCountCommand.cs" />
+    <Compile Include="Actions\SendChatMessageCmd.cs" />
     <Compile Include="Authenticator\AuthenticationServer.cs" />
     <Compile Include="DisplayNameMaps.cs" />
     <Compile Include="Exceptions\InvalidAccessTokenException.cs" />
@@ -75,52 +76,25 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="metadata\Icon256x256.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchAd.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchAd1.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchChatMessage.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchChatMessage1.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchClearChat.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchClearChat1.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchCreateClip.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchCreateStreamMarker.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchEmoteChat.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchEmoteChatToggle.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchFollowerChat.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchFollowerChatToggle.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchOpenLastClip.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchSlowChat.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchSlowChatToggle.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchStreamTitle.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchSubChat.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchSubChat2.png" />
-    <EmbeddedResource Include="Icons\50x50\TwitchViewers.png" />
-    <EmbeddedResource Include="Icons\50x50\Restart.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchAd.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchAd1.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchChatMessage.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchChatMessage1.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchClearChat.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchClearChat1.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchCreateClip.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchCreateStreamMarker.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchEmoteChat.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchEmoteChatToggle.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchFollowerChat.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchFollowerChatToggle.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchOpenLastClip.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchSlowChat.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchSlowChatToggle.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchStreamTitle.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchSubChat.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchSubChat2.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchViewers.png" />
-    <EmbeddedResource Include="Icons\80x80\Restart.png" />
+    <EmbeddedResource Include="Icons\ClearChat.svg" />
+    <EmbeddedResource Include="Icons\ChatEmotes-Only.svg" />
+    <EmbeddedResource Include="Icons\ChatEmotes-OnlyOff.svg" />
+    <EmbeddedResource Include="Icons\ChatFollowers-Only.svg" />
+    <EmbeddedResource Include="Icons\ChatFollowers-OnlyOff.svg" />
+    <EmbeddedResource Include="Icons\ChatShieldMode.svg" />
+    <EmbeddedResource Include="Icons\ChatShieldModeOff.svg" />
+    <EmbeddedResource Include="Icons\ChatSlowMode.svg" />
+    <EmbeddedResource Include="Icons\ChatSlowModeOff.svg" />
+    <EmbeddedResource Include="Icons\ChatSubscribers-Only.svg" />
+    <EmbeddedResource Include="Icons\ChatSubscribers-OnlyOff.svg" />
+    <EmbeddedResource Include="Icons\CreateClip.svg" />
+    <EmbeddedResource Include="Icons\CreateMarker.svg" />
+    <EmbeddedResource Include="Icons\RunCommercial.svg" />
+    <EmbeddedResource Include="Icons\SendChatMessage.svg" />
+    <EmbeddedResource Include="Icons\TwitchViewers.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="System.ComponentModel.Composition" Version="8.0.0" />
-    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="TwitchLib">
       <Version>3.5.3</Version>
     </PackageReference>
@@ -176,17 +150,9 @@
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="8.0.0-preview.7.23375.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Icons\80x80\TwitchShieldModeOff.png" />
-    <EmbeddedResource Include="Icons\80x80\TwitchShieldModeOn.png" />
   </ItemGroup>
  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Condition="$(OS) == 'Windows_NT'" Command="echo $(TargetDir) &gt; $(LocalAppData)\Logi\LogiPluginService\Plugins\$(ProjectName).link&#xD;&#xA;call $(ProjectDir)BuildEvents\postbuild.cmd $(ProjectDir) $(TargetDir)" />
+    <Exec Condition="$(OS) == 'Windows_NT'" Command="echo $(BaseOutputPath)$(Configuration) &gt; $(LocalAppData)\Logi\LogiPluginService\Plugins\$(ProjectName).link&#xD;&#xA;call $(ProjectDir)BuildEvents\postbuild.cmd $(ProjectDir) $(TargetDir)" />
     <Exec Condition="$(OS) != 'Windows_NT'" Command="echo $(TargetDir) &gt; $(LocalAppData)\Logi\LogiPluginService\Plugins\$(ProjectName).link&#xD;&#xA;sh $(ProjectDir)BuildEvents\postbuild $(ProjectDir) $(TargetDir)" />
   </Target>
   <Target Name="PluginClean" AfterTargets="CoreClean">
