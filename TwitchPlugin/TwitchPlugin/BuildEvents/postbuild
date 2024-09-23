@@ -27,6 +27,9 @@ echo Copying "$METADATA_DIR" to "${TARGET_DIR}../metadata"
 cp -R "$METADATA_DIR" "${TARGET_DIR}../metadata"
 assert "[ $? -ne 0 ]" "Copying metadata failed"
 
+echo Copy action icons
+cp -rf ${PROJECT_DIR}actionicons "${TARGET_DIR}../actionicons"
+
 # echo Copying "$SDK_DIR/" to "${TARGET_DIR}"
 # cp -R "$SDK_DIR/" "${TARGET_DIR}"
 # assert "[ $? -ne 0 ]" "Copying SDK failed"

@@ -4,6 +4,7 @@ namespace Loupedeck.TwitchPlugin.Actions
 
     internal class ViewerCountCommand : PluginDynamicCommand
     {
+        // We keep PNG because the plugin dynamically changes it adding the viewers count
         private const String IMGAction = "TwitchViewers.png";
 
         private const String InvalidScreenshotFolder = "Shows the current amount of viewers";

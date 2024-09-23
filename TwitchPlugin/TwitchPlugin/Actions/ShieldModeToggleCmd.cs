@@ -12,8 +12,8 @@
                             groupName: "",
                             onStateName: "Shield Mode is On",
                             offStateName: "Shield Mode is Off",
-                            offStateImage: "TwitchShieldModeOff.png",
-                            onStateImage: "TwitchShieldModeOn.png")
+                            offStateImage: "ChatShieldModeOff.svg",
+                            onStateImage: "ChatShieldMode.svg")
         {
         }
 

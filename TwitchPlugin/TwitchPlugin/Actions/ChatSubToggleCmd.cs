@@ -12,8 +12,8 @@
                             groupName: "",
                             onStateName: "Subscribers-Only chat is On",
                             offStateName: "Subscribers-Only chat is Off",
-                            onStateImage: "TwitchSubChat2.png",
-                            offStateImage: "TwitchSubChat.png")
+                            onStateImage: "ChatSubscribers-Only.svg",
+                            offStateImage: "ChatSubscribers-OnlyOff.svg")
         {
         }
 

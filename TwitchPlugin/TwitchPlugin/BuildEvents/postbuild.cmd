@@ -29,3 +29,7 @@ if not exist "%METADATA_DIR%" (
 
 echo Copying "%METADATA_DIR%" to "%TARGET_DIR%..\metadata\"
 xcopy /s /y "%METADATA_DIR%" "%TARGET_DIR%..\metadata\"
+
+echo Copy action icons
+xcopy /s /y %PROJECT_DIR%actionicons\ "%TARGET_DIR%..\actionicons\"
+if %errorlevel% neq 0 exit /b %errorlevel%
