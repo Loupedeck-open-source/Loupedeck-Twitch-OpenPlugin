@@ -6,6 +6,7 @@
     {
         public static PluginLogFile PluginLog { get; private set; } = null;
 
+        private readonly String SupportPageUrl = "https://support.logi.com/hc/articles/25522063648407-Other-Plugins-MX-Creative-Console#h_01J4V10DCGH4V2HFVRMXVMWFF2";
         private const String ConfigFileName = "twitch-v2.json";
 
         private readonly PluginPreferenceAccount _twitchAccount;
@@ -204,7 +205,7 @@
                 if (!this.TryGetPluginSetting(ConfigFileName, out json))
                 {
                     TwitchPlugin.PluginLog.Error("TwitchPlugin OnOnlineFileContentReceived: couldn't read config file from cache");
-                    this.OnPluginStatusChanged(Loupedeck.PluginStatus.Error, "No connection to Loupedeck Server.", null,
+                    this.OnPluginStatusChanged(Loupedeck.PluginStatus.Error, "No connection to Logi Plugin Server.", this.SupportPageUrl,
                         null);
 
                     return;
