@@ -33,3 +33,7 @@ xcopy /s /y "%METADATA_DIR%" "%TARGET_DIR%..\metadata\"
 echo Copy action icons
 xcopy /s /y %PROJECT_DIR%actionicons\ "%TARGET_DIR%..\actionicons\"
 if %errorlevel% neq 0 exit /b %errorlevel%
+
+echo Copy action symbols
+xcopy /s /y %PROJECT_DIR%actionsymbols\ "%TARGET_DIR%..\actionsymbols\"
+if %errorlevel% neq 0 exit /b %errorlevel%

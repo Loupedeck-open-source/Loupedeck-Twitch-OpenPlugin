@@ -30,6 +30,9 @@ assert "[ $? -ne 0 ]" "Copying metadata failed"
 echo Copy action icons
 cp -rf ${PROJECT_DIR}actionicons "${TARGET_DIR}../actionicons"
 
+echo Copy action symbols
+cp -rf ${PROJECT_DIR}actionsymbols "${TARGET_DIR}../actionsymbols"
+
 # echo Copying "$SDK_DIR/" to "${TARGET_DIR}"
 # cp -R "$SDK_DIR/" "${TARGET_DIR}"
 # assert "[ $? -ne 0 ]" "Copying SDK failed"
